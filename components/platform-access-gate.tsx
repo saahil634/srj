@@ -2,6 +2,7 @@
 
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
 
+import { demoCopy } from "@/lib/copy";
 import {
   PLATFORM_ACCESS_STORAGE_KEY,
   PLATFORM_ACCESS_TERMS,
@@ -78,29 +79,28 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
     if (stage === 1) {
       return {
-        title: "Secure-key 1",
-        helper: "Solve the arithmetic prompt exactly to open the next verification step.",
+        title: demoCopy.platformAccess.stages.stageOneTitle,
+        helper: demoCopy.platformAccess.stages.stageOneHelper,
         prompt: challengeSet.stageOne.prompt,
-        placeholder: "Enter the numeric result",
+        placeholder: demoCopy.platformAccess.stages.stageOnePlaceholder,
       };
     }
 
     if (stage === 2) {
       return {
-        title: "Secure-key 2",
-        helper: "Type yes or no to confirm whether the two arithmetic expressions are equivalent.",
+        title: demoCopy.platformAccess.stages.stageTwoTitle,
+        helper: demoCopy.platformAccess.stages.stageTwoHelper,
         prompt: challengeSet.stageTwo.prompt,
-        placeholder: "Enter yes or no",
+        placeholder: demoCopy.platformAccess.stages.stageTwoPlaceholder,
       };
     }
 
     if (stage === 3) {
       return {
-        title: "Secure-key 3",
-        helper:
-          "Enter any arithmetic expression that is equivalent to the prompt total. Examples: 10-2, 7+1, 4*2.",
+        title: demoCopy.platformAccess.stages.stageThreeTitle,
+        helper: demoCopy.platformAccess.stages.stageThreeHelper,
         prompt: challengeSet.stageThree.prompt,
-        placeholder: "Enter an equivalent arithmetic expression",
+        placeholder: demoCopy.platformAccess.stages.stageThreePlaceholder,
       };
     }
 
@@ -121,7 +121,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               onClick={resetAccessFlow}
               className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-medium text-slate shadow-sm backdrop-blur transition hover:border-signal hover:text-ink"
             >
-              Logout session
+              {demoCopy.platformAccess.header.logoutButton}
             </button>
           </div>
           {children}
@@ -152,7 +152,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
     if (!acceptedTerms) {
       updateStageState({
-        error: "You must accept the platform terms before continuing.",
+        error: demoCopy.platformAccess.errors.acceptTerms,
       });
       return;
     }
@@ -161,7 +161,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
     if (!normalizedInput) {
       updateStageState({
-        error: "Enter a response to continue.",
+        error: demoCopy.platformAccess.errors.emptyResponse,
       });
       return;
     }
@@ -169,7 +169,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     if (stage === 1) {
       if (normalizedInput !== challengeSet.stageOne.answer) {
         updateStageState({
-          error: "That arithmetic result is not correct. Try again.",
+          error: demoCopy.platformAccess.errors.wrongArithmetic,
         });
         return;
       }
@@ -183,14 +183,14 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
       if (!["yes", "no"].includes(normalizedAnswer)) {
         updateStageState({
-          error: 'Enter "yes" or "no" for the equivalence check.',
+          error: demoCopy.platformAccess.errors.yesNoRequired,
         });
         return;
       }
 
       if (normalizedAnswer !== challengeSet.stageTwo.answer) {
         updateStageState({
-          error: "That verification result is incorrect. Re-evaluate the equation and try again.",
+          error: demoCopy.platformAccess.errors.wrongVerification,
         });
         return;
       }
@@ -204,14 +204,14 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
       if (evaluated === null) {
         updateStageState({
-          error: "Enter a valid arithmetic expression using numbers and operators.",
+          error: demoCopy.platformAccess.errors.invalidExpression,
         });
         return;
       }
 
       if (evaluated !== challengeSet.stageThree.target) {
         updateStageState({
-          error: "That expression is not equivalent to the prompt total. Try another relation.",
+          error: demoCopy.platformAccess.errors.wrongEquivalentRelation,
         });
         return;
       }
@@ -240,19 +240,18 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
         <section className="grid max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[0.92fr_1.08fr]">
           <div className="overflow-auto bg-ink px-7 py-8 text-white lg:px-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
-              Platform access authentication
+              {demoCopy.platformAccess.header.eyebrow}
             </p>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight">
-              Secure relational jump access check
+              {demoCopy.platformAccess.header.title}
             </h1>
             <p className="mt-4 text-base leading-7 text-mist">
-              Review the terms, complete the three secure-key prompts, and keep a note of your
-              unique secure-relational-jump-access-key for this session.
+              {demoCopy.platformAccess.header.description}
             </p>
 
             <div className="mt-8 rounded-[1.75rem] border border-white/15 bg-white/10 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-                Terms and conditions
+                {demoCopy.platformAccess.header.termsEyebrow}
               </p>
               <ul className="mt-4 space-y-3 text-sm leading-7 text-mist">
                 {PLATFORM_ACCESS_TERMS.map((term) => (
@@ -268,10 +267,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                 onChange={(event) => setAcceptedTerms(event.target.checked)}
                 className="mt-1 h-4 w-4 rounded border-white/30 bg-transparent text-signal focus:ring-signal"
               />
-              <span>
-                I accept the demo terms and understand that the access sequence functions as a
-                controlled platform-entry credential.
-              </span>
+              <span>{demoCopy.platformAccess.header.acceptLabel}</span>
             </label>
           </div>
 
@@ -279,14 +275,17 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
-                  {activeChallenge?.title ?? "Access granted"}
+                  {activeChallenge?.title ?? demoCopy.platformAccess.stages.accessGrantedTitle}
                 </p>
                 <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-                  {stage < 4 ? "Build your access key" : "Access unlocked"}
+                  {stage < 4
+                    ? demoCopy.platformAccess.stages.buildKeyTitle
+                    : demoCopy.platformAccess.stages.unlockedTitle}
                 </h2>
               </div>
               <div className="rounded-full bg-mist px-4 py-2 text-sm font-medium text-slate">
-                Step {Math.min(stage, 3)} of 3
+                {demoCopy.platformAccess.stages.stepPrefix} {Math.min(stage, 3)}{" "}
+                {demoCopy.platformAccess.stages.stepJoiner} 3
               </div>
             </div>
 
@@ -294,14 +293,16 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
                 <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate">
-                    Prompt
+                    {demoCopy.platformAccess.stages.promptLabel}
                   </p>
                   <p className="mt-3 text-3xl font-semibold text-ink">{activeChallenge.prompt}</p>
                   <p className="mt-4 text-sm leading-6 text-slate">{activeChallenge.helper}</p>
                 </div>
 
                 <label className="block space-y-2">
-                  <span className="text-sm font-medium text-ink">Secure-key response</span>
+                  <span className="text-sm font-medium text-ink">
+                    {demoCopy.platformAccess.stages.responseLabel}
+                  </span>
                   <input
                     value={stageState.input}
                     onChange={(event) =>
@@ -323,12 +324,12 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
                 <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ember">
-                    Current key sequence
+                    {demoCopy.platformAccess.stages.keySequenceLabel}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-ink">
                     {accessKeyParts.length > 0
                       ? accessKeyParts.join(" | ")
-                      : "Your secure-relational-jump-access-key will be formed as you complete the three steps."}
+                      : demoCopy.platformAccess.stages.keySequenceEmpty}
                   </p>
                 </div>
 
@@ -336,7 +337,9 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                   type="submit"
                   className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
                 >
-                  {stage === 3 ? "Unlock platform access" : "Continue to next secure-key"}
+                  {stage === 3
+                    ? demoCopy.platformAccess.stages.unlockButton
+                    : demoCopy.platformAccess.stages.continueButton}
                 </button>
               </form>
             ) : null}
@@ -345,23 +348,22 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               <div className="mt-8 space-y-5">
                 <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
-                    Secure-relational-jump-access-key
+                    {demoCopy.platformAccess.completion.keyEyebrow}
                   </p>
                   <p className="mt-3 text-xl font-semibold leading-9 text-ink">
                     {pendingRecord.accessKey}
                   </p>
                   <p className="mt-4 text-sm leading-6 text-slate">
-                    Take note of this unique combination. It is your secure-relational-jump-access-key
-                    for the current demo session.
+                    {demoCopy.platformAccess.completion.keyBody}
                   </p>
                 </div>
 
                 <div className="rounded-[1.5rem] border border-slate-200 bg-mist p-4">
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">
-                    Session unlocked
+                    {demoCopy.platformAccess.completion.statusEyebrow}
                   </p>
                   <p className="mt-2 text-sm leading-6 text-ink">
-                    Platform terms accepted and access authentication completed successfully.
+                    {demoCopy.platformAccess.completion.statusBody}
                   </p>
                 </div>
 
@@ -373,7 +375,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                   }}
                   className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
                 >
-                  Enter SRJ Demo
+                  {demoCopy.platformAccess.completion.enterButton}
                 </button>
               </div>
             ) : null}

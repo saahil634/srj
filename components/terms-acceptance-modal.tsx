@@ -2,6 +2,8 @@
 
 import { FormEvent, useState } from "react";
 
+import { demoCopy } from "@/lib/copy";
+
 interface TermsAcceptanceModalProps {
   packageId: string;
   open: boolean;
@@ -46,7 +48,7 @@ export function TermsAcceptanceModal({
       const payload = (await response.json()) as { acceptedAt?: string; error?: string };
 
       if (!response.ok) {
-        throw new Error(payload.error || "Unable to log terms acceptance");
+        throw new Error(payload.error || demoCopy.termsModal.errors.unableToLog);
       }
 
       onAccepted({
@@ -61,7 +63,9 @@ export function TermsAcceptanceModal({
       onClose();
     } catch (submissionError) {
       setError(
-        submissionError instanceof Error ? submissionError.message : "Unable to log acceptance",
+        submissionError instanceof Error
+          ? submissionError.message
+          : demoCopy.termsModal.errors.unableToLogFallback,
       );
     } finally {
       setIsSubmitting(false);
@@ -73,39 +77,41 @@ export function TermsAcceptanceModal({
       <div className="w-full max-w-xl rounded-[2rem] bg-white p-6 shadow-panel">
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">Terms acceptance</p>
-            <h2 className="mt-2 text-2xl font-semibold text-ink">Unlock SRJ package access</h2>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
+              {demoCopy.termsModal.eyebrow}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-ink">{demoCopy.termsModal.title}</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate"
           >
-            Close
+            {demoCopy.termsModal.closeButton}
           </button>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-ink">Full name</span>
+            <span className="text-sm font-medium text-ink">{demoCopy.termsModal.fields.fullNameLabel}</span>
             <input
               required
               value={fullName}
               onChange={(event) => setFullName(event.target.value)}
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
-              placeholder="Taylor Morgan"
+              placeholder={demoCopy.termsModal.fields.fullNamePlaceholder}
             />
           </label>
 
           <label className="block space-y-2">
-            <span className="text-sm font-medium text-ink">Email</span>
+            <span className="text-sm font-medium text-ink">{demoCopy.termsModal.fields.emailLabel}</span>
             <input
               required
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
-              placeholder="taylor@example.org"
+              placeholder={demoCopy.termsModal.fields.emailPlaceholder}
             />
           </label>
 
@@ -117,22 +123,21 @@ export function TermsAcceptanceModal({
               onChange={(event) => setAccepted(event.target.checked)}
               className="mt-1 h-4 w-4 rounded border-slate-300 text-signal focus:ring-signal"
             />
-            <span>
-              I accept the stated usage restrictions and understand this access is logged for
-              governance review.
-            </span>
+            <span>{demoCopy.termsModal.acceptanceLabel}</span>
           </label>
 
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
           <div className="flex items-center justify-between gap-3 pt-2">
-            <p className="text-sm text-slate">Package: {packageId}</p>
+            <p className="text-sm text-slate">
+              {demoCopy.termsModal.packagePrefix} {packageId}
+            </p>
             <button
               type="submit"
               disabled={isSubmitting}
               className="rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-signal disabled:cursor-wait disabled:opacity-70"
             >
-              {isSubmitting ? "Recording acceptance..." : "Accept and unlock"}
+              {isSubmitting ? demoCopy.termsModal.submitLoading : demoCopy.termsModal.submitIdle}
             </button>
           </div>
         </form>
