@@ -1,8 +1,7 @@
-import { get } from "@vercel/blob";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { getAccessCookieName, isBlobConfigured } from "@/lib/blob-storage";
+import { getAccessCookieName, getPrivateBlob, isBlobConfigured } from "@/lib/blob-storage";
 
 export const dynamic = "force-dynamic";
 
@@ -31,14 +30,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const blob = await get(pathname, {
-      access: "private",
-      useCache: false,
-    });
-
-    if (!blob || blob.statusCode !== 200) {
-      return NextResponse.json({ error: "Unable to load the requested file preview." }, { status: 404 });
-    }
+    const blob = await getPrivateBlob(pathname);
 
     return new Response(blob.stream, {
       headers: {

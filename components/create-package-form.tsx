@@ -41,7 +41,7 @@ export function CreatePackageForm() {
   }
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[1.2fr_0.8fr]">
+    <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
       <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-panel">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div>
@@ -116,7 +116,10 @@ export function CreatePackageForm() {
         </div>
       </section>
 
-      <ManifestPreview manifest={latestPackage?.manifest ?? null} />
+      <ManifestPreview
+        className="xl:sticky xl:top-24"
+        manifest={latestPackage?.manifest ?? null}
+      />
     </div>
   );
 }

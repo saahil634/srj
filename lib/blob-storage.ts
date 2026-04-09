@@ -55,14 +55,7 @@ export function getAccessCookieName(packageId: string) {
 }
 
 async function readBlobText(pathname: string) {
-  const response = await get(pathname, {
-    access: "private",
-    useCache: false,
-  });
-
-  if (!response || response.statusCode !== 200) {
-    throw new Error(`Blob not found: ${pathname}`);
-  }
+  const response = await getPrivateBlob(pathname);
 
   return new Response(response.stream).text();
 }
@@ -79,6 +72,21 @@ async function writeJsonBlob(pathname: string, value: unknown) {
     allowOverwrite: true,
     contentType: "application/json; charset=utf-8",
   });
+}
+
+export async function getPrivateBlob(pathname: string) {
+  ensureBlobConfigured();
+
+  const response = await get(pathname, {
+    access: "private",
+    useCache: false,
+  });
+
+  if (!response || response.statusCode !== 200) {
+    throw new Error(`Blob not found: ${pathname}`);
+  }
+
+  return response;
 }
 
 function hydrateStoredPackage(pkg: StoredDemoPackage) {
@@ -164,6 +172,14 @@ export async function listStoredPackages() {
     (left, right) =>
       new Date(right.manifest.createdAt).getTime() - new Date(left.manifest.createdAt).getTime(),
   );
+}
+
+export async function getStoredPackage(packageId: string) {
+  ensureBlobConfigured();
+
+  const record = await readBlobJson<StoredDemoPackage>(buildRecordPath(packageId));
+
+  return hydrateStoredPackage(record);
 }
 
 export async function recordAcceptanceLog(input: AcceptancePayload) {

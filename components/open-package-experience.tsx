@@ -151,15 +151,26 @@ export function OpenPackageExperience() {
             <p className="mt-2 text-sm leading-6 text-ink">{GOVERNANCE_NOTICE}</p>
           </div>
 
-          {!isAccepted ? (
-            <button
-              type="button"
-              onClick={() => setShowModal(true)}
-              className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
-            >
-              Review and accept terms
-            </button>
-          ) : null}
+          <div className="flex flex-wrap gap-3">
+            {!isAccepted ? (
+              <button
+                type="button"
+                onClick={() => setShowModal(true)}
+                className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
+              >
+                Review and accept terms
+              </button>
+            ) : null}
+
+            {isAccepted ? (
+              <a
+                href={`/api/packages/${activePackage.manifest.packageId}/download`}
+                className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
+              >
+                Download ZIP
+              </a>
+            ) : null}
+          </div>
         </aside>
       </section>
 
@@ -173,7 +184,7 @@ export function OpenPackageExperience() {
         <section className="grid gap-4 md:grid-cols-3">
           <UnlockFact label="Package ID" value={activePackage.manifest.packageId} />
           <UnlockFact label="Accepted at" value={formatDateTime(activePackage.acceptance.acceptedAt)} />
-          <UnlockFact label="Governance" value="Access event recorded" />
+          <UnlockFact label="Governance" value="ZIP download unlocked" />
         </section>
       ) : null}
 
