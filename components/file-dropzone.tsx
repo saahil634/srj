@@ -2,6 +2,7 @@
 
 import { ChangeEvent, DragEvent, useRef, useState } from "react";
 
+import { demoCopy } from "@/lib/copy";
 import { MAX_TOTAL_UPLOAD_BYTES, UPLOAD_ACCEPT_LABEL } from "@/lib/constants";
 import { exceedsUploadLimit, getTotalUploadBytes, isAllowedUploadFile } from "@/lib/upload-rules";
 import { cn, formatBytes } from "@/lib/utils";
@@ -35,9 +36,7 @@ export function FileDropzone({
     const deduped = [...files];
 
     if (incoming.length !== droppedFiles.length) {
-      onErrorChange?.(
-        "Only images, short audio clips, short video clips, PDFs, and TXT files are allowed.",
-      );
+      onErrorChange?.(demoCopy.fileDropzone.errors.invalidType);
     }
 
     incoming.forEach((file) => {
@@ -54,7 +53,7 @@ export function FileDropzone({
     });
 
     if (exceedsUploadLimit(deduped)) {
-      onErrorChange?.("Total upload size must stay within 10 MB.");
+      onErrorChange?.(demoCopy.fileDropzone.errors.totalUploadLimit);
       return;
     }
 
@@ -106,26 +105,29 @@ export function FileDropzone({
             <path d="M12 16V4m0 0-4 4m4-4 4 4M5 15.5v2A1.5 1.5 0 0 0 6.5 19h11a1.5 1.5 0 0 0 1.5-1.5v-2" />
           </svg>
         </div>
-        <p className="text-lg font-semibold text-ink">Drop assets to assemble the SRJ package</p>
+        <p className="text-lg font-semibold text-ink">{demoCopy.fileDropzone.dropTitle}</p>
         <p className="mt-2 max-w-xl text-sm leading-6 text-slate">
-          Upload multiple {UPLOAD_ACCEPT_LABEL.toLowerCase()}. Total upload size must stay within
-          10 MB across the whole package.
+          {demoCopy.fileDropzone.dropDescription}
         </p>
         <div className="mt-4 rounded-full bg-mist px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate">
-          10 MB total limit
+          {demoCopy.fileDropzone.limitBadge}
         </div>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
           className="mt-5 rounded-full bg-ink px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-signal"
         >
-          Select files
+          {demoCopy.fileDropzone.selectButton}
         </button>
       </label>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] bg-mist px-4 py-3 text-sm text-slate">
-        <span>Allowed: {UPLOAD_ACCEPT_LABEL}</span>
-        <span>Total selected: {formatBytes(getTotalUploadBytes(files))}</span>
+        <span>
+          {demoCopy.fileDropzone.allowedPrefix} {UPLOAD_ACCEPT_LABEL}
+        </span>
+        <span>
+          {demoCopy.fileDropzone.totalSelectedPrefix} {formatBytes(getTotalUploadBytes(files))}
+        </span>
       </div>
 
       {error ? (
@@ -141,17 +143,17 @@ export function FileDropzone({
             className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3"
           >
             <div>
-              <p className="font-medium text-ink">{file.name}</p>
-              <p className="text-sm text-slate">
-                {file.type || "Unknown type"} • {formatBytes(file.size)}
-              </p>
-            </div>
+                <p className="font-medium text-ink">{file.name}</p>
+                <p className="text-sm text-slate">
+                  {file.type || demoCopy.fileDropzone.unknownType} • {formatBytes(file.size)}
+                </p>
+              </div>
             <button
               type="button"
               onClick={() => removeFile(index)}
               className="rounded-full border border-slate-300 px-3 py-1 text-sm font-medium text-slate transition hover:border-red-300 hover:text-red-600"
             >
-              Remove
+              {demoCopy.fileDropzone.removeButton}
             </button>
           </div>
         ))}

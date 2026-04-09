@@ -1,10 +1,12 @@
 import type { Route } from "next";
 import Link from "next/link";
 
+import { demoCopy } from "@/lib/copy";
+
 const links: Array<{ href: Route; label: string }> = [
-  { href: "/", label: "Overview" },
-  { href: "/create", label: "Create SRJ" },
-  { href: "/open", label: "Open SRJ" },
+  { href: "/", label: demoCopy.app.nav.links.overview },
+  { href: "/create", label: demoCopy.app.nav.links.create },
+  { href: "/open", label: demoCopy.app.nav.links.open },
 ];
 
 export function NavBar() {
@@ -13,9 +15,9 @@ export function NavBar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-signal">
-            Conference Prototype
+            {demoCopy.app.nav.eyebrow}
           </p>
-          <p className="text-lg font-semibold text-ink">SRJ Demo</p>
+          <p className="text-lg font-semibold text-ink">{demoCopy.app.nav.title}</p>
         </div>
         <nav className="flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 p-1 text-sm">
           {links.map((link) => (

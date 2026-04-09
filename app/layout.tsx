@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 
 import { NavBar } from "@/components/nav-bar";
 import { PlatformAccessGate } from "@/components/platform-access-gate";
+import { demoCopy } from "@/lib/copy";
 import { SRJStoreProvider } from "@/lib/srj-store";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "SRJ Demo",
-  description: "Prototype flows for creating and opening SRJ packages.",
+  title: demoCopy.app.title,
+  description: demoCopy.app.description,
 };
 
 export default function RootLayout({
