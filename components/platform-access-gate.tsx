@@ -35,13 +35,20 @@ function getStoredPlatformAccess() {
   }
 }
 
+function createEmptyStageState(): StageState {
+  return {
+    input: "",
+    error: null,
+  };
+}
+
 export function PlatformAccessGate({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [accessRecord, setAccessRecord] = useState<PlatformAccessRecord | null>(null);
   const [pendingRecord, setPendingRecord] = useState<PlatformAccessRecord | null>(null);
   const [stage, setStage] = useState<AccessStage>(1);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [stageState, setStageState] = useState<StageState>({ input: "", error: null });
+  const [stageState, setStageState] = useState<StageState>(createEmptyStageState());
   const [challengeSet, setChallengeSet] = useState<PlatformAccessChallengeSet | null>(null);
   const [accessKeyParts, setAccessKeyParts] = useState<string[]>([]);
 
@@ -52,6 +59,17 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     setChallengeSet(createPlatformAccessChallengeSet());
     setIsHydrated(true);
   }, []);
+
+  function resetAccessFlow() {
+    window.sessionStorage.removeItem(PLATFORM_ACCESS_STORAGE_KEY);
+    setAccessRecord(null);
+    setPendingRecord(null);
+    setStage(1);
+    setAcceptedTerms(false);
+    setStageState(createEmptyStageState());
+    setChallengeSet(createPlatformAccessChallengeSet());
+    setAccessKeyParts([]);
+  }
 
   const activeChallenge = useMemo(() => {
     if (!challengeSet) {
@@ -94,7 +112,22 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
   }
 
   if (accessRecord && !pendingRecord) {
-    return <>{children}</>;
+    return (
+      <>
+        <div className="relative">
+          <div className="fixed right-6 top-6 z-[65]">
+            <button
+              type="button"
+              onClick={resetAccessFlow}
+              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-medium text-slate shadow-sm backdrop-blur transition hover:border-signal hover:text-ink"
+            >
+              Logout session
+            </button>
+          </div>
+          {children}
+        </div>
+      </>
+    );
   }
 
   function updateStageState(nextState: Partial<StageState>) {
@@ -107,10 +140,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
   function moveToNextStage(nextPart: string, nextStage: AccessStage) {
     setAccessKeyParts((current) => [...current, nextPart]);
     setStage(nextStage);
-    setStageState({
-      input: "",
-      error: null,
-    });
+    setStageState(createEmptyStageState());
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
