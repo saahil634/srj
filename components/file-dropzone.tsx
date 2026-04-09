@@ -2,16 +2,25 @@
 
 import { ChangeEvent, DragEvent, useRef, useState } from "react";
 
+import { MAX_TOTAL_UPLOAD_BYTES, UPLOAD_ACCEPT_LABEL } from "@/lib/constants";
+import { exceedsUploadLimit, getTotalUploadBytes, isAllowedUploadFile } from "@/lib/upload-rules";
 import { cn, formatBytes } from "@/lib/utils";
 
 interface FileDropzoneProps {
   files: File[];
   onFilesChange: (files: File[]) => void;
+  error?: string | null;
+  onErrorChange?: (error: string | null) => void;
 }
 
-const ACCEPTED_TYPES = ["image/*", "application/pdf", "video/*"].join(",");
+const ACCEPTED_TYPES = ["image/*", "audio/*", "video/*", "application/pdf", ".txt", "text/plain"].join(",");
 
-export function FileDropzone({ files, onFilesChange }: FileDropzoneProps) {
+export function FileDropzone({
+  files,
+  onFilesChange,
+  error,
+  onErrorChange,
+}: FileDropzoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -20,14 +29,16 @@ export function FileDropzone({ files, onFilesChange }: FileDropzoneProps) {
       return;
     }
 
-    const incoming = Array.from(fileList).filter(
-      (file) =>
-        file.type.startsWith("image/") ||
-        file.type === "application/pdf" ||
-        file.type.startsWith("video/"),
-    );
+    const droppedFiles = Array.from(fileList);
+    const incoming = droppedFiles.filter((file) => isAllowedUploadFile(file));
 
     const deduped = [...files];
+
+    if (incoming.length !== droppedFiles.length) {
+      onErrorChange?.(
+        "Only images, short audio clips, short video clips, PDFs, and TXT files are allowed.",
+      );
+    }
 
     incoming.forEach((file) => {
       const exists = deduped.some(
@@ -42,6 +53,12 @@ export function FileDropzone({ files, onFilesChange }: FileDropzoneProps) {
       }
     });
 
+    if (exceedsUploadLimit(deduped)) {
+      onErrorChange?.("Total upload size must stay within 10 MB.");
+      return;
+    }
+
+    onErrorChange?.(null);
     onFilesChange(deduped);
   }
 
@@ -91,9 +108,12 @@ export function FileDropzone({ files, onFilesChange }: FileDropzoneProps) {
         </div>
         <p className="text-lg font-semibold text-ink">Drop assets to assemble the SRJ package</p>
         <p className="mt-2 max-w-xl text-sm leading-6 text-slate">
-          Upload multiple images, PDFs, and short videos. The demo keeps files in local state and
-          generates a manifest immediately for presentation flow-through.
+          Upload multiple {UPLOAD_ACCEPT_LABEL.toLowerCase()}. Total upload size must stay within
+          10 MB across the whole package.
         </p>
+        <div className="mt-4 rounded-full bg-mist px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate">
+          10 MB total limit
+        </div>
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
@@ -102,6 +122,17 @@ export function FileDropzone({ files, onFilesChange }: FileDropzoneProps) {
           Select files
         </button>
       </label>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] bg-mist px-4 py-3 text-sm text-slate">
+        <span>Allowed: {UPLOAD_ACCEPT_LABEL}</span>
+        <span>Total selected: {formatBytes(getTotalUploadBytes(files))}</span>
+      </div>
+
+      {error ? (
+        <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+          {error}
+        </div>
+      ) : null}
 
       <div className="space-y-3">
         {files.map((file, index) => (

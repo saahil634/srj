@@ -33,12 +33,20 @@ export function getFileKind(file: File | { type: string }): DemoFileKind {
     return "image";
   }
 
+  if (file.type.startsWith("audio/")) {
+    return "audio";
+  }
+
   if (file.type === "application/pdf") {
     return "pdf";
   }
 
   if (file.type.startsWith("video/")) {
     return "video";
+  }
+
+  if (file.type === "text/plain") {
+    return "text";
   }
 
   return "other";

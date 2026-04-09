@@ -167,7 +167,7 @@ export function OpenPackageExperience() {
                 href={`/api/packages/${activePackage.manifest.packageId}/download`}
                 className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
               >
-                Download ZIP
+                Download Web ZIP
               </a>
             ) : null}
           </div>
@@ -184,7 +184,7 @@ export function OpenPackageExperience() {
         <section className="grid gap-4 md:grid-cols-3">
           <UnlockFact label="Package ID" value={activePackage.manifest.packageId} />
           <UnlockFact label="Accepted at" value={formatDateTime(activePackage.acceptance.acceptedAt)} />
-          <UnlockFact label="Governance" value="ZIP download unlocked" />
+          <UnlockFact label="Governance" value="Derivative ZIP unlocked" />
         </section>
       ) : null}
 

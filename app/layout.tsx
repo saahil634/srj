@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { NavBar } from "@/components/nav-bar";
+import { PlatformAccessGate } from "@/components/platform-access-gate";
 import { SRJStoreProvider } from "@/lib/srj-store";
 
 import "./globals.css";
@@ -19,10 +20,12 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased">
         <SRJStoreProvider>
-          <div className="min-h-screen bg-grid-fade bg-[size:42px_42px]">
-            <NavBar />
-            <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
-          </div>
+          <PlatformAccessGate>
+            <div className="min-h-screen bg-grid-fade bg-[size:42px_42px]">
+              <NavBar />
+              <main className="mx-auto max-w-6xl px-6 py-10">{children}</main>
+            </div>
+          </PlatformAccessGate>
         </SRJStoreProvider>
       </body>
     </html>

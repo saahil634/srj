@@ -37,6 +37,19 @@ export function PackageMetadataCard({ manifest }: PackageMetadataCardProps) {
           <p className="mt-2 text-base leading-7 text-ink">{manifest.noticeText}</p>
         </div>
       </div>
+
+      <div className="mt-4 rounded-[1.5rem] border border-slate-200 p-4">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">SRJ key reference</p>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <ReferenceFact label="Key ID" value={manifest.srjKeyReference.keyId} />
+          <ReferenceFact label="Relation" value={manifest.srjKeyReference.relationExpression} />
+          <ReferenceFact label="Target value" value={String(manifest.srjKeyReference.targetValue)} />
+        </div>
+        <p className="mt-3 text-sm leading-6 text-slate">
+          Every file in this package is associated to the uploader-defined SRJ key via
+          <span className="font-medium text-ink"> {manifest.srjKeyReference.keyId}</span>.
+        </p>
+      </div>
     </section>
   );
 }
@@ -46,6 +59,15 @@ function MetadataItem({ label, value }: { label: string; value: string }) {
     <div className="rounded-[1.5rem] border border-slate-200 p-4">
       <dt className="text-sm uppercase tracking-[0.2em] text-slate">{label}</dt>
       <dd className="mt-2 text-lg font-semibold text-ink">{value}</dd>
+    </div>
+  );
+}
+
+function ReferenceFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-[1.25rem] bg-mist p-3">
+      <p className="text-xs uppercase tracking-[0.18em] text-slate">{label}</p>
+      <p className="mt-2 break-all text-sm font-semibold text-ink">{value}</p>
     </div>
   );
 }

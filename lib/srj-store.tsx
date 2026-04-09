@@ -14,6 +14,7 @@ import { AcceptanceRecord, SRJPackageManifest, StoredDemoPackage } from "@/lib/t
 interface PackageDraftInput {
   title: string;
   termsPreset: string;
+  srjRelation: string;
   files: File[];
 }
 
@@ -89,10 +90,11 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
       activePackageId,
       isLoading,
       loadError,
-      createPackage: async ({ title, termsPreset, files }) => {
+      createPackage: async ({ title, termsPreset, srjRelation, files }) => {
         const formData = new FormData();
         formData.set("title", title);
         formData.set("termsPreset", termsPreset);
+        formData.set("srjRelation", srjRelation);
 
         files.forEach((file) => {
           formData.append("files", file);

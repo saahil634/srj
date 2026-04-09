@@ -9,10 +9,12 @@ import {
   StoredDemoPackage,
 } from "@/lib/types";
 import { generateId, getFileKind } from "@/lib/utils";
+import { evaluateArithmeticExpression } from "@/lib/platform-access";
 
 const PACKAGE_RECORD_PREFIX = "srj-demo/package-records";
 const PACKAGE_FILE_PREFIX = "srj-demo/package-files";
 const ACCEPTANCE_LOG_PREFIX = "srj-demo/acceptance-logs";
+const DERIVATIVE_ERROR_LOG_PREFIX = "srj-demo/derivative-error-logs";
 
 export const BLOB_CONFIG_ERROR =
   "Blob storage is not configured. Add BLOB_READ_WRITE_TOKEN before creating packages or recording access events.";
@@ -20,6 +22,7 @@ export const BLOB_CONFIG_ERROR =
 interface CreateStoredPackageInput {
   title: string;
   termsPreset: string;
+  srjRelation: string;
   files: File[];
 }
 
@@ -39,6 +42,10 @@ function buildRecordPath(packageId: string) {
 
 function buildAcceptanceLogPath(packageId: string, acceptedAt: string) {
   return `${ACCEPTANCE_LOG_PREFIX}/${packageId}/${acceptedAt}.json`;
+}
+
+function buildDerivativeErrorLogPath(packageId: string, loggedAt: string, fileId: string) {
+  return `${DERIVATIVE_ERROR_LOG_PREFIX}/${packageId}/${loggedAt}-${fileId}.json`;
 }
 
 export function buildPreviewUrl(packageId: string, pathname: string) {
@@ -105,12 +112,20 @@ function hydrateStoredPackage(pkg: StoredDemoPackage) {
 export async function createStoredPackage({
   title,
   termsPreset,
+  srjRelation,
   files,
 }: CreateStoredPackageInput) {
   ensureBlobConfigured();
 
   const packageId = generateId("srj");
   const createdAt = new Date().toISOString();
+  const srjTargetValue = evaluateArithmeticExpression(srjRelation);
+
+  if (srjTargetValue === null) {
+    throw new Error("The SRJ relation reference must be a valid arithmetic expression.");
+  }
+
+  const srjKeyId = generateId("srjk");
 
   const assets: DemoFileAsset[] = [];
 
@@ -129,6 +144,7 @@ export async function createStoredPackage({
       type: file.type,
       size: file.size,
       kind: getFileKind(file),
+      srjKeyId,
       pathname: blob.pathname,
       previewUrl: buildPreviewUrl(packageId, blob.pathname),
     });
@@ -139,6 +155,12 @@ export async function createStoredPackage({
     title,
     createdAt,
     files: assets.map(({ previewUrl: _previewUrl, pathname: _pathname, ...file }) => file),
+    srjKeyReference: {
+      keyId: srjKeyId,
+      relationExpression: srjRelation,
+      targetValue: srjTargetValue,
+      sessionScoped: true,
+    },
     allowedUses: termsPreset || TERMS_PRESET,
     termsVersion: TERMS_VERSION,
     noticeText: GOVERNANCE_NOTICE,
@@ -192,6 +214,30 @@ export async function recordAcceptanceLog(input: AcceptancePayload) {
   };
 
   await writeJsonBlob(buildAcceptanceLogPath(input.packageId, acceptedAt), log);
+
+  return log;
+}
+
+export async function recordDerivativeErrorLog(input: {
+  packageId: string;
+  fileId: string;
+  fileName: string;
+  fileKind: string;
+  stage: string;
+  message: string;
+}) {
+  ensureBlobConfigured();
+
+  const loggedAt = new Date().toISOString();
+  const log = {
+    ...input,
+    loggedAt,
+  };
+
+  await writeJsonBlob(
+    buildDerivativeErrorLogPath(input.packageId, loggedAt, input.fileId),
+    log,
+  );
 
   return log;
 }

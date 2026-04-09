@@ -5,7 +5,9 @@ import { useState } from "react";
 
 import { FileDropzone } from "@/components/file-dropzone";
 import { ManifestPreview } from "@/components/manifest-preview";
-import { TERMS_PRESET } from "@/lib/constants";
+import { MAX_TOTAL_UPLOAD_BYTES, TERMS_PRESET, UPLOAD_ACCEPT_LABEL } from "@/lib/constants";
+import { evaluateArithmeticExpression } from "@/lib/platform-access";
+import { exceedsUploadLimit } from "@/lib/upload-rules";
 import { useSRJStore } from "@/lib/srj-store";
 import { StoredDemoPackage } from "@/lib/types";
 
@@ -13,19 +15,38 @@ export function CreatePackageForm() {
   const { createPackage, loadError } = useSRJStore();
   const [title, setTitle] = useState("Climate Dataset Field Study");
   const [termsPreset, setTermsPreset] = useState(TERMS_PRESET);
+  const [srjRelation, setSrjRelation] = useState("10-2");
   const [files, setFiles] = useState<File[]>([]);
   const [latestPackage, setLatestPackage] = useState<StoredDemoPackage | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleCreate() {
     setError(null);
+
+    if (uploadError) {
+      setError(uploadError);
+      return;
+    }
+
+    if (exceedsUploadLimit(files)) {
+      setError(`Total upload size must stay within ${Math.round(MAX_TOTAL_UPLOAD_BYTES / (1024 * 1024))} MB.`);
+      return;
+    }
+
+    if (evaluateArithmeticExpression(srjRelation) === null) {
+      setError("Enter a valid SRJ relation expression such as 10-2, 7+1, or 4*2.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const nextPackage = await createPackage({
         title,
         termsPreset,
+        srjRelation,
         files,
       });
 
@@ -74,7 +95,26 @@ export function CreatePackageForm() {
             />
           </label>
 
-          <FileDropzone files={files} onFilesChange={setFiles} />
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-ink">Uploader SRJ relation reference</span>
+            <input
+              value={srjRelation}
+              onChange={(event) => setSrjRelation(event.target.value)}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
+              placeholder="Enter an equivalence relation like 10-2 or 7+1"
+            />
+            <p className="text-sm leading-6 text-slate">
+              This uploader-defined arithmetic relation becomes the package&apos;s SRJ key reference in
+              the manifest and associates every file in the package to the same unique SRJ key.
+            </p>
+          </label>
+
+          <FileDropzone
+            files={files}
+            onFilesChange={setFiles}
+            error={uploadError}
+            onErrorChange={setUploadError}
+          />
 
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
@@ -87,6 +127,7 @@ export function CreatePackageForm() {
             </button>
             <p className="text-sm text-slate">
               Files are uploaded to Vercel Blob and the manifest is saved for the open flow.
+              Allowed uploads: {UPLOAD_ACCEPT_LABEL.toLowerCase()}.
             </p>
           </div>
 

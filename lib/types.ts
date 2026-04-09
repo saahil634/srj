@@ -1,4 +1,11 @@
-export type DemoFileKind = "image" | "pdf" | "video" | "other";
+export type DemoFileKind = "image" | "audio" | "pdf" | "video" | "text" | "other";
+
+export interface SRJKeyReference {
+  keyId: string;
+  relationExpression: string;
+  targetValue: number;
+  sessionScoped: boolean;
+}
 
 export interface SRJManifestFile {
   fileId: string;
@@ -6,6 +13,7 @@ export interface SRJManifestFile {
   type: string;
   size: number;
   kind: DemoFileKind;
+  srjKeyId: string;
 }
 
 export interface SRJPackageManifest {
@@ -13,6 +21,7 @@ export interface SRJPackageManifest {
   title: string;
   createdAt: string;
   files: SRJManifestFile[];
+  srjKeyReference: SRJKeyReference;
   allowedUses: string;
   termsVersion: string;
   noticeText: string;
