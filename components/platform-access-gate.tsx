@@ -595,133 +595,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex min-h-0 flex-col overflow-auto px-7 py-8 lg:px-8">
-            <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
-                {demoCopy.platformAccess.header.invitationTitle}
-              </p>
-              <p className="mt-3 text-sm leading-6 text-slate">
-                {demoCopy.platformAccess.header.invitationBody}
-              </p>
-              <div className="mt-4 flex flex-col gap-4 md:flex-row md:items-end">
-                <label className="block flex-1 space-y-2">
-                  <span className="text-sm font-medium text-ink">
-                    {demoCopy.platformAccess.header.invitationLabel}
-                  </span>
-                  <input
-                    value={invitationCode}
-                    onChange={(event) => {
-                      setInvitationCode(event.target.value);
-                      setInvitationError(null);
-                    }}
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-signal"
-                    placeholder={demoCopy.platformAccess.header.invitationPlaceholder}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={handleInvitationLookup}
-                  disabled={isCheckingInvitation}
-                  className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
-                >
-                  {isCheckingInvitation
-                    ? demoCopy.platformAccess.header.invitationLoadingButton
-                    : demoCopy.platformAccess.header.invitationButton}
-                </button>
-              </div>
-              {invitationError ? (
-                <div className="mt-4 rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
-                  {invitationError}
-                </div>
-              ) : null}
-            </div>
-
-            {invitationRecord ? (
-              <div className="mt-8 space-y-5">
-                <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
-                    {demoCopy.platformAccess.invitationResult.eyebrow}
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-ink">
-                    {demoCopy.platformAccess.invitationResult.title}
-                  </h2>
-                  <p className="mt-3 text-sm leading-6 text-slate">
-                    {invitationRecord.ownerName ||
-                      demoCopy.platformAccess.invitationResult.ownerFallback}
-                    {" · "}
-                    {invitationRecord.ownerEmail ||
-                      demoCopy.platformAccess.invitationResult.emailFallback}
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-slate">
-                    Root key created {formatDateTime(invitationRecord.unlockedAt)}
-                  </p>
-                </div>
-
-                {ownerActionError ? (
-                  <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
-                    {ownerActionError}
-                  </div>
-                ) : null}
-
-                <div className="space-y-4">
-                  {invitationPackages.length === 0 ? (
-                    <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-4 text-sm leading-6 text-slate">
-                      {demoCopy.platformAccess.invitationResult.noPackages}
-                    </div>
-                  ) : null}
-
-                  {invitationPackages.map((pkg) => (
-                    <div
-                      key={pkg.manifest.packageId}
-                      className="rounded-[1.5rem] border border-slate-200 bg-white p-4"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-lg font-semibold text-ink">{pkg.manifest.title}</p>
-                          <p className="mt-1 text-sm text-slate">{pkg.manifest.packageId}</p>
-                          <p className="mt-1 text-sm text-slate">
-                            {formatDateTime(pkg.manifest.createdAt)}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleInvitationDownload(pkg.manifest.packageId)
-                            }
-                            disabled={isDownloadingPackageId === pkg.manifest.packageId}
-                            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
-                          >
-                            {isDownloadingPackageId === pkg.manifest.packageId
-                              ? demoCopy.retrieveExperience.lookup.retrievingButton
-                              : demoCopy.platformAccess.invitationResult.downloadRecordsButton}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleInvitationDelete(pkg.manifest.packageId)}
-                            disabled={isDeletingPackageId === pkg.manifest.packageId}
-                            className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
-                          >
-                            {isDeletingPackageId === pkg.manifest.packageId
-                              ? demoCopy.retrieveExperience.lookup.retrievingButton
-                              : demoCopy.platformAccess.invitationResult.deleteButton}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleInvitationEnter}
-                  className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
-                >
-                  {demoCopy.platformAccess.invitationResult.enterButton}
-                </button>
-              </div>
-            ) : null}
-
-            {!invitationRecord && stage < 4 && activeChallenge ? (
+            {stage < 4 && activeChallenge ? (
               <div className="mt-8">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -793,7 +667,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               </div>
             ) : null}
 
-            {!invitationRecord && stage === 4 && pendingRecord ? (
+            {stage === 4 && pendingRecord ? (
               <div className="mt-8 space-y-5">
                 <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
@@ -876,6 +750,132 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                     {demoCopy.platformAccess.completion.enterButton}
                   </button>
                 </div>
+              </div>
+            ) : null}
+
+            <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-mist p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
+                {demoCopy.platformAccess.header.invitationTitle}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-slate">
+                {demoCopy.platformAccess.header.invitationBody}
+              </p>
+              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end">
+                <label className="block flex-1 space-y-2">
+                  <span className="text-sm font-medium text-ink">
+                    {demoCopy.platformAccess.header.invitationLabel}
+                  </span>
+                  <input
+                    value={invitationCode}
+                    onChange={(event) => {
+                      setInvitationCode(event.target.value);
+                      setInvitationError(null);
+                    }}
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-signal"
+                    placeholder={demoCopy.platformAccess.header.invitationPlaceholder}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleInvitationLookup}
+                  disabled={isCheckingInvitation}
+                  className="rounded-full border border-slate-300 px-4 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                >
+                  {isCheckingInvitation
+                    ? demoCopy.platformAccess.header.invitationLoadingButton
+                    : demoCopy.platformAccess.header.invitationButton}
+                </button>
+              </div>
+              {invitationError ? (
+                <div className="mt-3 rounded-[1.25rem] border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-700">
+                  {invitationError}
+                </div>
+              ) : null}
+            </div>
+
+            {invitationRecord ? (
+              <div className="mt-6 space-y-5">
+                <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
+                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
+                    {demoCopy.platformAccess.invitationResult.eyebrow}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold text-ink">
+                    {demoCopy.platformAccess.invitationResult.title}
+                  </h2>
+                  <p className="mt-3 text-sm leading-6 text-slate">
+                    {invitationRecord.ownerName ||
+                      demoCopy.platformAccess.invitationResult.ownerFallback}
+                    {" · "}
+                    {invitationRecord.ownerEmail ||
+                      demoCopy.platformAccess.invitationResult.emailFallback}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-slate">
+                    Root key created {formatDateTime(invitationRecord.unlockedAt)}
+                  </p>
+                </div>
+
+                {ownerActionError ? (
+                  <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+                    {ownerActionError}
+                  </div>
+                ) : null}
+
+                <div className="space-y-4">
+                  {invitationPackages.length === 0 ? (
+                    <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-4 text-sm leading-6 text-slate">
+                      {demoCopy.platformAccess.invitationResult.noPackages}
+                    </div>
+                  ) : null}
+
+                  {invitationPackages.map((pkg) => (
+                    <div
+                      key={pkg.manifest.packageId}
+                      className="rounded-[1.5rem] border border-slate-200 bg-white p-4"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="text-lg font-semibold text-ink">{pkg.manifest.title}</p>
+                          <p className="mt-1 text-sm text-slate">{pkg.manifest.packageId}</p>
+                          <p className="mt-1 text-sm text-slate">
+                            {formatDateTime(pkg.manifest.createdAt)}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleInvitationDownload(pkg.manifest.packageId)
+                            }
+                            disabled={isDownloadingPackageId === pkg.manifest.packageId}
+                            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                          >
+                            {isDownloadingPackageId === pkg.manifest.packageId
+                              ? demoCopy.retrieveExperience.lookup.retrievingButton
+                              : demoCopy.platformAccess.invitationResult.downloadRecordsButton}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleInvitationDelete(pkg.manifest.packageId)}
+                            disabled={isDeletingPackageId === pkg.manifest.packageId}
+                            className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
+                          >
+                            {isDeletingPackageId === pkg.manifest.packageId
+                              ? demoCopy.retrieveExperience.lookup.retrievingButton
+                              : demoCopy.platformAccess.invitationResult.deleteButton}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleInvitationEnter}
+                  className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
+                >
+                  {demoCopy.platformAccess.invitationResult.enterButton}
+                </button>
               </div>
             ) : null}
           </div>

@@ -329,9 +329,9 @@ export const demoCopy = {
       acceptLabel:
         "I am 21 years old and above. I accept the terms and understand the conditions for using this website.",
       logoutButton: "Logout session",
-      invitationTitle: "Already have a secure-root-key?",
+      invitationTitle: "Already have a previous secure-access key?",
       invitationBody:
-        "Enter your invitation code to access packages linked to your root-key and linked email identity.",
+        "Enter your invitation code to load packages linked to that root-key and email.",
       invitationLabel: "Invitation code",
       invitationPlaceholder: "Enter your secure-root-key",
       invitationButton: "Access with invitation code",
