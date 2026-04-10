@@ -55,7 +55,14 @@ export function PackageMetadataCard({ manifest }: PackageMetadataCardProps) {
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           <ReferenceFact label={demoCopy.packageMetadata.labels.keyId} value={manifest.srjKeyReference.keyId} />
           <ReferenceFact label={demoCopy.packageMetadata.labels.relation} value={manifest.srjKeyReference.relationExpression} />
-          <ReferenceFact label={demoCopy.packageMetadata.labels.targetValue} value={String(manifest.srjKeyReference.targetValue)} />
+          <ReferenceFact
+            label={demoCopy.packageMetadata.labels.targetValue}
+            value={
+              manifest.srjKeyReference.targetValue === null
+                ? demoCopy.packageMetadata.targetValueFallback
+                : String(manifest.srjKeyReference.targetValue)
+            }
+          />
         </div>
         <p className="mt-3 text-sm leading-6 text-slate">
           {demoCopy.packageMetadata.srjKeyReferenceBodyPrefix}

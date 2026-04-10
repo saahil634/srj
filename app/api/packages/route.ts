@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { MAX_TOTAL_UPLOAD_BYTES } from "@/lib/constants";
-import { BLOB_CONFIG_ERROR, createStoredPackage, isBlobConfigured, listStoredPackages } from "@/lib/blob-storage";
+import {
+  BLOB_CONFIG_ERROR,
+  createStoredPackage,
+  deleteStoredPackage,
+  isBlobConfigured,
+  listStoredPackages,
+} from "@/lib/blob-storage";
 import { isAllowedUploadFile } from "@/lib/upload-rules";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +51,7 @@ export async function POST(request: Request) {
     const title = String(formData.get("title") ?? "").trim();
     const termsPreset = String(formData.get("termsPreset") ?? "").trim();
     const srjRelation = String(formData.get("srjRelation") ?? "").trim();
+    const accessKeyId = String(formData.get("accessKeyId") ?? "").trim() || null;
     const files = formData
       .getAll("files")
       .filter((value): value is File => value instanceof File && value.size > 0);
@@ -87,6 +94,7 @@ export async function POST(request: Request) {
       title,
       termsPreset,
       srjRelation,
+      accessKeyId,
       files,
     });
 
@@ -100,6 +108,45 @@ export async function POST(request: Request) {
             : "Unable to create the SRJ package in Blob storage.",
       },
       { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  if (!isBlobConfigured()) {
+    return NextResponse.json({ error: BLOB_CONFIG_ERROR }, { status: 503 });
+  }
+
+  try {
+    const payload = (await request.json()) as {
+      packageId?: string;
+      accessKey?: string;
+    };
+    const packageId = String(payload.packageId ?? "").trim();
+    const accessKey = String(payload.accessKey ?? "").trim();
+
+    if (!packageId) {
+      return NextResponse.json({ error: "Package ID is required." }, { status: 400 });
+    }
+
+    if (!accessKey) {
+      return NextResponse.json({ error: "SRJ access key is required." }, { status: 400 });
+    }
+
+    await deleteStoredPackage({ packageId, accessKey });
+
+    return NextResponse.json({ packageId });
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Unable to delete the SRJ package from Blob storage.";
+
+    return NextResponse.json(
+      {
+        error: message,
+      },
+      { status: message.includes("does not match") ? 403 : 500 },
     );
   }
 }
