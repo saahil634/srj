@@ -303,19 +303,24 @@ export const demoCopy = {
   platformAccess: {
     header: {
       eyebrow: "Platform access authentication",
-      title: "Secure Relational Jump(SRJ) Demo",
+      title: "Secure Relational Jump (.SRJ): Treating Data as a Relation",
       description:
-        "Review the terms and conditions below, complete three small steps to access this session.",
+        "Review the terms and conditions below, then complete three secure-key steps to access this session.",
       termsEyebrow: "Terms and conditions",
+      lastUpdatedLabel: "Last Updated: April 10, 2026",
       acceptLabel:
-        "I accept the terms and understand that access to SRJ demo is provided through a unique SRJ-access-key.",
+        "I accept the terms and understand the conditions for using this website.",
       logoutButton: "Logout session",
     },
     terms: [
-      "This SRJ demo is intended only for authorized users to upload and compress digital files and multimedia assets",
-      "Do not upload any illegal,unauthorized, or copyright materials into this SRJ prototype environment.",
-      "Your SRJ-access-key is part of the demonstration experience and should be treated as a temporary access credential.",
-      "Proceed only if you understand that your use and interactions with this website is for an academic research demonstration.",
+      "This SRJ website is currently under development and is available to invited users only. To request an invitation, please email the site administrator at turamp@washington.edu.",
+      "Users may upload images, short-form audio/video, PDF files, and TXT documents. The maximum storage limit is 10 MB per session. Do not upload illegal, unauthorized, confidential, or copyright-protected material without permission. The site administrator has access to your uploaded data and the terms and conditions you attach to it.",
+      "Access to this website requires that you are a human capable of keeping custody of your secret key. Your SRJ-access-key, created using numbers, text, and arithmetic expressions, is required to create, access, or delete your data.",
+      "This website is part of an Information Science research project titled \"Data Sovereignty in the Age of Gen-AI\" at the University of Washington, Seattle. The objectives of this project are to evaluate technical solutions that protect digital datasets from misuse, misrepresentation, and misappropriation. Your interactions with this website are recorded and contribute to a doctoral dissertation project. You can delete your data at any time using your SRJ-access-key or by emailing the site administrator.",
+      "This research experience is intended for Indigenous and non-Native scholars who are interested in publishing their data through websites, applications, and AI tools while protecting them from unsupervised access, reuse, and sharing.",
+      "You must be at least 21 years old to use this website. This platform is a temporary academic research demonstration. Research data will be archived and made available to participants who sign up and complete this study by June 15, 2027, subject to university requirements.",
+      "This website is provided as is and for research purposes only. The site administrator and affiliated parties, including the University of Washington, are not liable for any loss, damage, injury, data exposure, or technical failure arising from your use of this website.",
+      "By agreeing below, you acknowledge that you agree to the terms and conditions.",
     ],
     stages: {
       stageOneTitle: "Secure-key 1",
