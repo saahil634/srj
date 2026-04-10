@@ -558,45 +558,49 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     <PlatformAccessSessionContext.Provider value={{ accessRecord, logout: resetAccessFlow }}>
       <div className="pointer-events-none select-none opacity-25 blur-sm">{children}</div>
 
-      <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/55 p-6 backdrop-blur-sm">
-        <section className="grid max-h-[92vh] w-full max-w-6xl overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[minmax(0,1fr)_minmax(0,0.96fr)]">
-          <div className="flex min-h-0 flex-col overflow-auto bg-ink px-7 py-8 text-white lg:px-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
-              {demoCopy.platformAccess.header.eyebrow}
-            </p>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight">
-              {demoCopy.platformAccess.header.title}
-            </h1>
-            <p className="mt-4 text-base leading-7 text-mist">
-              {demoCopy.platformAccess.header.description}
-            </p>
+      <div className="fixed inset-0 z-[70] overflow-y-auto bg-ink/55 p-4 backdrop-blur-sm md:p-6">
+        <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center">
+          <section className="grid w-full overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+            <div className="flex min-h-0 flex-col overflow-auto bg-ink px-6 py-7 text-white lg:px-8 lg:py-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
+                {demoCopy.platformAccess.header.eyebrow}
+              </p>
+              <h1 className="mt-4 text-[2.35rem] font-semibold tracking-tight leading-[1.05]">
+                {demoCopy.platformAccess.header.title}
+              </h1>
+              <p className="mt-2 text-xl font-medium tracking-tight text-white/78">
+                {demoCopy.platformAccess.header.subtitle}
+              </p>
+              <p className="mt-4 text-base leading-7 text-mist">
+                {demoCopy.platformAccess.header.description}
+              </p>
 
-            <p className="mt-8 text-sm font-semibold tracking-[0.08em] text-white/85">
-              {demoCopy.platformAccess.header.lastUpdatedLabel}
-            </p>
+              <p className="mt-8 text-sm font-semibold tracking-[0.08em] text-white/85">
+                {demoCopy.platformAccess.header.lastUpdatedLabel}
+              </p>
 
-            <div className="srj-scrollbar mt-5 max-h-[40vh] min-h-[18rem] overflow-y-auto rounded-[1.5rem] border border-white/12 bg-white/10 px-5 py-5 lg:max-h-[43vh]">
-              <div className="space-y-4 text-sm leading-7 text-mist">
-                {PLATFORM_ACCESS_TERMS.map((term) => (
-                  <p key={term}>{term}</p>
-                ))}
+              <div className="srj-scrollbar mt-5 max-h-[40vh] min-h-[18rem] overflow-y-auto rounded-[1.5rem] border border-white/12 bg-[#F7F4ED] px-5 py-5 lg:max-h-[43vh]">
+                <div className="space-y-4 text-sm leading-7 text-slate-800">
+                  {PLATFORM_ACCESS_TERMS.map((term) => (
+                    <p key={term}>{term}</p>
+                  ))}
+                </div>
               </div>
+
+              <label className="mt-5 flex items-start gap-4 rounded-[1.5rem] border-2 border-amber-300/80 bg-amber-300/10 p-5 text-base leading-7 text-white shadow-[0_0_0_1px_rgba(253,224,71,0.15)]">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(event) => setAcceptedTerms(event.target.checked)}
+                  className="mt-1 h-6 w-6 rounded border-2 border-amber-200 bg-transparent text-amber-300 focus:ring-amber-300"
+                />
+                <span className="font-medium">{demoCopy.platformAccess.header.acceptLabel}</span>
+              </label>
             </div>
 
-            <label className="mt-5 flex items-start gap-4 rounded-[1.5rem] border-2 border-amber-300/80 bg-amber-300/10 p-5 text-base leading-7 text-white shadow-[0_0_0_1px_rgba(253,224,71,0.15)]">
-              <input
-                type="checkbox"
-                checked={acceptedTerms}
-                onChange={(event) => setAcceptedTerms(event.target.checked)}
-                className="mt-1 h-6 w-6 rounded border-2 border-amber-200 bg-transparent text-amber-300 focus:ring-amber-300"
-              />
-              <span className="font-medium">{demoCopy.platformAccess.header.acceptLabel}</span>
-            </label>
-          </div>
-
-          <div className="flex min-h-0 flex-col overflow-auto px-7 py-8 lg:px-8">
+            <div className="flex min-h-0 flex-col overflow-auto px-6 py-6 lg:px-7 lg:py-7">
             {stage < 4 && activeChallenge ? (
-              <div className="mt-8">
+              <div className="mt-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
@@ -612,7 +616,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                   </div>
                 </div>
 
-                <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+                <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
                   <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate">
                       {demoCopy.platformAccess.stages.promptLabel}
@@ -668,7 +672,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
             ) : null}
 
             {stage === 4 && pendingRecord ? (
-              <div className="mt-8 space-y-5">
+              <div className="mt-4 space-y-5">
                 <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
                     {demoCopy.platformAccess.completion.keyEyebrow}
@@ -752,49 +756,53 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                 </div>
               </div>
             ) : null}
-
-            <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-mist p-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
-                {demoCopy.platformAccess.header.invitationTitle}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-slate">
-                {demoCopy.platformAccess.header.invitationBody}
-              </p>
-              <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end">
-                <label className="block flex-1 space-y-2">
-                  <span className="text-sm font-medium text-ink">
-                    {demoCopy.platformAccess.header.invitationLabel}
-                  </span>
-                  <input
-                    value={invitationCode}
-                    onChange={(event) => {
-                      setInvitationCode(event.target.value);
-                      setInvitationError(null);
-                    }}
-                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-signal"
-                    placeholder={demoCopy.platformAccess.header.invitationPlaceholder}
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={handleInvitationLookup}
-                  disabled={isCheckingInvitation}
-                  className="rounded-full border border-slate-300 px-4 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
-                >
-                  {isCheckingInvitation
-                    ? demoCopy.platformAccess.header.invitationLoadingButton
-                    : demoCopy.platformAccess.header.invitationButton}
-                </button>
-              </div>
-              {invitationError ? (
-                <div className="mt-3 rounded-[1.25rem] border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-700">
-                  {invitationError}
-                </div>
-              ) : null}
             </div>
+          </section>
 
-            {invitationRecord ? (
-              <div className="mt-6 space-y-5">
+          <div className="mt-4 w-full lg:flex lg:justify-end">
+            <div className="w-full space-y-4 lg:w-[46%]">
+              <div className="rounded-[1.5rem] border border-slate-200 bg-white/95 p-4 shadow-panel backdrop-blur">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
+                  {demoCopy.platformAccess.header.invitationTitle}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate">
+                  {demoCopy.platformAccess.header.invitationBody}
+                </p>
+                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end">
+                  <label className="block flex-1 space-y-2">
+                    <span className="text-sm font-medium text-ink">
+                      {demoCopy.platformAccess.header.invitationLabel}
+                    </span>
+                    <input
+                      value={invitationCode}
+                      onChange={(event) => {
+                        setInvitationCode(event.target.value);
+                        setInvitationError(null);
+                      }}
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-signal"
+                      placeholder={demoCopy.platformAccess.header.invitationPlaceholder}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleInvitationLookup}
+                    disabled={isCheckingInvitation}
+                    className="rounded-full border border-slate-300 px-4 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                  >
+                    {isCheckingInvitation
+                      ? demoCopy.platformAccess.header.invitationLoadingButton
+                      : demoCopy.platformAccess.header.invitationButton}
+                  </button>
+                </div>
+                {invitationError ? (
+                  <div className="mt-3 rounded-[1.25rem] border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-700">
+                    {invitationError}
+                  </div>
+                ) : null}
+              </div>
+
+              {invitationRecord ? (
+                <div className="space-y-5 rounded-[1.75rem] border border-slate-200 bg-white/95 p-5 shadow-panel backdrop-blur">
                 <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
                     {demoCopy.platformAccess.invitationResult.eyebrow}
@@ -876,10 +884,11 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                 >
                   {demoCopy.platformAccess.invitationResult.enterButton}
                 </button>
-              </div>
-            ) : null}
+                </div>
+              ) : null}
+            </div>
           </div>
-        </section>
+        </div>
       </div>
     </PlatformAccessSessionContext.Provider>
   );

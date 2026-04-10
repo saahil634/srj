@@ -321,7 +321,8 @@ export const demoCopy = {
   platformAccess: {
     header: {
       eyebrow: "Access Terms and Conditions",
-      title: "Secure Relational Jump (.SRJ): Data as a Relation",
+      title: "Secure Relational Jump (.SRJ)",
+      subtitle: "Data as a Relation",
       description:
         "Review the terms and conditions below to access this session.",
       termsEyebrow: "Terms and conditions",
