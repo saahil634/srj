@@ -617,182 +617,18 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               </label>
             </div>
 
-            <div className="flex h-full min-h-0 flex-col px-6 py-6 lg:px-7 lg:py-7">
-              <div className="flex-1">
-                {stage < 4 && activeChallenge ? (
-                  <div className="mt-4">
-                  <div className="flex items-center justify-between gap-3">
+            <div className="flex min-h-0 flex-col px-6 py-6 lg:px-7 lg:py-7">
+              {showInvitationLookup ? (
+                <div className="mt-4 space-y-5">
+                  <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
-                        {activeChallenge.title}
+                        {demoCopy.platformAccess.header.invitationTitle}
                       </p>
                       <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-                        {demoCopy.platformAccess.stages.buildKeyTitle}
+                        Access a previous key
                       </h2>
                     </div>
-                    <div className="rounded-full bg-mist px-4 py-2 text-sm font-medium text-slate">
-                      {demoCopy.platformAccess.stages.stepPrefix} {Math.min(stage, 3)}{" "}
-                      {demoCopy.platformAccess.stages.stepJoiner} 3
-                    </div>
-                  </div>
-
-                  <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-                    <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
-                      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate">
-                        {demoCopy.platformAccess.stages.promptLabel}
-                      </p>
-                      <p className="mt-3 text-3xl font-semibold text-ink">
-                        {activeChallenge.prompt}
-                      </p>
-                      <p className="mt-4 text-sm leading-6 text-slate">{activeChallenge.helper}</p>
-                    </div>
-
-                    <label className="block space-y-2">
-                      <span className="text-sm font-medium text-ink">
-                        {demoCopy.platformAccess.stages.responseLabel}
-                      </span>
-                      <p className="text-sm leading-6 text-slate">
-                        {stage === 1
-                          ? demoCopy.platformAccess.stages.responseHelp
-                          : stage === 2
-                            ? demoCopy.platformAccess.stages.stageTwoResponseHelp
-                            : demoCopy.platformAccess.stages.stageThreeResponseHelp}
-                      </p>
-                      <input
-                        value={stageState.input}
-                        onChange={(event) =>
-                          setStageState({
-                            input: event.target.value,
-                            error: null,
-                          })
-                        }
-                        className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-signal"
-                        placeholder={activeChallenge.placeholder}
-                      />
-                    </label>
-
-                    {stageState.error ? (
-                      <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
-                        {stageState.error}
-                      </div>
-                    ) : null}
-
-                    <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
-                      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ember">
-                        {demoCopy.platformAccess.stages.keySequenceLabel}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-ink">
-                        {accessKeyParts.length > 0
-                          ? accessKeyParts.join(" | ")
-                          : demoCopy.platformAccess.stages.keySequenceEmpty}
-                      </p>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
-                    >
-                      {stage === 3
-                        ? demoCopy.platformAccess.stages.unlockButton
-                        : demoCopy.platformAccess.stages.continueButton}
-                    </button>
-                  </form>
-                  </div>
-                ) : null}
-
-                {stage === 4 && pendingRecord ? (
-                  <div className="mt-4 space-y-5">
-                    <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
-                      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
-                        {demoCopy.platformAccess.completion.keyEyebrow}
-                      </p>
-                      <p className="mt-3 text-xl font-semibold leading-9 text-ink">
-                        {pendingRecord.accessKey}
-                      </p>
-                      <p className="mt-4 text-sm leading-6 text-slate">
-                        {demoCopy.platformAccess.completion.keyBody}
-                      </p>
-                    </div>
-
-                    <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
-                      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">
-                        {demoCopy.platformAccess.completion.linkTitle}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-slate">
-                        {demoCopy.platformAccess.completion.linkBody}
-                      </p>
-
-                      <div className="mt-4 grid gap-4 md:grid-cols-2">
-                        <label className="block space-y-2">
-                          <span className="text-sm font-medium text-ink">
-                            {demoCopy.platformAccess.completion.nameLabel}
-                          </span>
-                          <input
-                            value={pendingOwnerName}
-                            onChange={(event) => setPendingOwnerName(event.target.value)}
-                            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-signal"
-                            placeholder={demoCopy.platformAccess.completion.namePlaceholder}
-                          />
-                        </label>
-                        <label className="block space-y-2">
-                          <span className="text-sm font-medium text-ink">
-                            {demoCopy.platformAccess.completion.emailLabel}
-                          </span>
-                          <input
-                            type="email"
-                            value={pendingOwnerEmail}
-                            onChange={(event) => setPendingOwnerEmail(event.target.value)}
-                            className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-signal"
-                            placeholder={demoCopy.platformAccess.completion.emailPlaceholder}
-                          />
-                        </label>
-                      </div>
-                    </div>
-
-                    <div className="rounded-[1.5rem] border border-slate-200 bg-mist p-4">
-                      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">
-                        {demoCopy.platformAccess.completion.statusEyebrow}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-ink">
-                        {demoCopy.platformAccess.completion.statusBody}
-                      </p>
-                    </div>
-
-                    {completionError ? (
-                      <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
-                        {completionError}
-                      </div>
-                    ) : null}
-
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={handleCompletionDownload}
-                        disabled={isPersistingProfile}
-                        className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
-                      >
-                        {demoCopy.platformAccess.completion.downloadButton}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleCompletionEnter}
-                        disabled={isPersistingProfile}
-                        className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
-                      >
-                        {demoCopy.platformAccess.completion.enterButton}
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-
-              {showInvitationLookup ? (
-                <div className="mt-6 shrink-0 rounded-[1.35rem] border border-slate-200 bg-mist p-3.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
-                      {demoCopy.platformAccess.header.invitationTitle}
-                    </p>
                     <button
                       type="button"
                       onClick={() => {
@@ -803,10 +639,17 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                         setOwnerActionError(null);
                         setInvitationCode("");
                       }}
-                      className="rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate transition hover:border-slate-300 hover:text-ink"
+                      className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate transition hover:border-slate-300 hover:text-ink"
                     >
                       Hide
                     </button>
+                  </div>
+
+                  <div className="rounded-[1.5rem] border border-slate-200 bg-mist p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-signal">
+                      Choose key type
+                    </p>
                   </div>
                   <div className="mt-2.5 grid grid-cols-2 gap-2.5">
                     {(["secure-key", "access-key"] as const).map((mode) => {
@@ -870,14 +713,15 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                           : demoCopy.platformAccess.header.accessKeyButton}
                     </button>
                   </div>
-                  {invitationError ? (
-                    <div className="mt-2.5 rounded-[1.15rem] border border-red-200 bg-red-50 p-2.5 text-sm leading-6 text-red-700">
-                      {invitationError}
-                    </div>
-                  ) : null}
+                {invitationError ? (
+                  <div className="mt-2.5 rounded-[1.15rem] border border-red-200 bg-red-50 p-2.5 text-sm leading-6 text-red-700">
+                    {invitationError}
+                  </div>
+                ) : null}
+                  </div>
                 </div>
               ) : (
-                <div className="mt-6 shrink-0">
+                <div className="mt-auto pt-6">
                   <button
                     type="button"
                     onClick={() => setShowInvitationLookup(true)}
