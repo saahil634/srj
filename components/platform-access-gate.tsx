@@ -284,7 +284,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
       <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/55 p-6 backdrop-blur-sm">
         <section className="grid max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="overflow-auto bg-ink px-7 py-8 text-white lg:px-8">
+          <div className="flex min-h-0 flex-col bg-ink px-7 py-8 text-white lg:px-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
               {demoCopy.platformAccess.header.eyebrow}
             </p>
@@ -295,17 +295,22 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               {demoCopy.platformAccess.header.description}
             </p>
 
-            <div className="mt-8 rounded-[1.75rem] border border-white/15 bg-white/10 p-5">
+            <div className="mt-8 flex min-h-0 flex-1 flex-col rounded-[1.75rem] border border-white/15 bg-white/10 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
                 {demoCopy.platformAccess.header.termsEyebrow}
               </p>
               <p className="mt-3 text-sm font-semibold tracking-[0.08em] text-white/85">
                 {demoCopy.platformAccess.header.lastUpdatedLabel}
               </p>
-              <div className="mt-4 space-y-4 text-sm leading-7 text-mist">
+              <div className="mt-3 rounded-[1.25rem] border border-white/10 bg-black/10 px-4 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-white/65">
+                Scroll to review all terms before proceeding.
+              </div>
+              <div className="srj-scrollbar mt-4 flex-1 overflow-y-scroll rounded-[1.25rem] border border-white/10 bg-black/10 px-4 py-4">
+                <div className="space-y-4 text-sm leading-7 text-mist">
                 {PLATFORM_ACCESS_TERMS.map((term) => (
                   <p key={term}>{term}</p>
                 ))}
+                </div>
               </div>
             </div>
 
@@ -320,7 +325,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
             </label>
           </div>
 
-          <div className="overflow-auto px-7 py-8 lg:px-8">
+          <div className="flex min-h-0 flex-col overflow-auto px-7 py-8 lg:px-8">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
