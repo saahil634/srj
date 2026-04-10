@@ -560,7 +560,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
       <div className="fixed inset-0 z-[70] overflow-y-auto bg-ink/55 p-4 backdrop-blur-sm md:p-6">
         <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center">
-          <section className="grid w-full overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+          <section className="grid max-h-[92vh] w-full overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
             <div className="flex min-h-0 flex-col overflow-auto bg-ink px-6 py-7 text-white lg:px-8 lg:py-8">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
                 {demoCopy.platformAccess.header.eyebrow}
@@ -579,8 +579,8 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                 {demoCopy.platformAccess.header.lastUpdatedLabel}
               </p>
 
-              <div className="srj-scrollbar mt-5 max-h-[40vh] min-h-[18rem] overflow-y-auto rounded-[1.5rem] border border-white/12 bg-[#F7F4ED] px-5 py-5 lg:max-h-[43vh]">
-                <div className="space-y-4 text-sm leading-7 text-slate-800">
+              <div className="srj-scrollbar mt-5 max-h-[40vh] min-h-[18rem] overflow-y-auto rounded-[1.5rem] border border-white/12 bg-white/10 px-5 py-5 lg:max-h-[43vh]">
+                <div className="space-y-4 text-sm leading-7 text-white/88">
                   {PLATFORM_ACCESS_TERMS.map((term) => (
                     <p key={term}>{term}</p>
                   ))}
@@ -599,80 +599,82 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
             </div>
 
             <div className="flex min-h-0 flex-col overflow-auto px-6 py-6 lg:px-7 lg:py-7">
-            {stage < 4 && activeChallenge ? (
-              <div className="mt-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
-                      {activeChallenge.title}
-                    </p>
-                    <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-                      {demoCopy.platformAccess.stages.buildKeyTitle}
-                    </h2>
-                  </div>
-                  <div className="rounded-full bg-mist px-4 py-2 text-sm font-medium text-slate">
-                    {demoCopy.platformAccess.stages.stepPrefix} {Math.min(stage, 3)}{" "}
-                    {demoCopy.platformAccess.stages.stepJoiner} 3
-                  </div>
-                </div>
-
-                <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-                  <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
-                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate">
-                      {demoCopy.platformAccess.stages.promptLabel}
-                    </p>
-                    <p className="mt-3 text-3xl font-semibold text-ink">{activeChallenge.prompt}</p>
-                    <p className="mt-4 text-sm leading-6 text-slate">{activeChallenge.helper}</p>
-                  </div>
-
-                  <label className="block space-y-2">
-                    <span className="text-sm font-medium text-ink">
-                      {demoCopy.platformAccess.stages.responseLabel}
-                    </span>
-                    <input
-                      value={stageState.input}
-                      onChange={(event) =>
-                        setStageState({
-                          input: event.target.value,
-                          error: null,
-                        })
-                      }
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-signal"
-                      placeholder={activeChallenge.placeholder}
-                    />
-                  </label>
-
-                  {stageState.error ? (
-                    <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
-                      {stageState.error}
+              {stage < 4 && activeChallenge ? (
+                <div className="mt-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
+                        {activeChallenge.title}
+                      </p>
+                      <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink">
+                        {demoCopy.platformAccess.stages.buildKeyTitle}
+                      </h2>
                     </div>
-                  ) : null}
-
-                  <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ember">
-                      {demoCopy.platformAccess.stages.keySequenceLabel}
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-ink">
-                      {accessKeyParts.length > 0
-                        ? accessKeyParts.join(" | ")
-                        : demoCopy.platformAccess.stages.keySequenceEmpty}
-                    </p>
+                    <div className="rounded-full bg-mist px-4 py-2 text-sm font-medium text-slate">
+                      {demoCopy.platformAccess.stages.stepPrefix} {Math.min(stage, 3)}{" "}
+                      {demoCopy.platformAccess.stages.stepJoiner} 3
+                    </div>
                   </div>
 
-                  <button
-                    type="submit"
-                    className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
-                  >
-                    {stage === 3
-                      ? demoCopy.platformAccess.stages.unlockButton
-                      : demoCopy.platformAccess.stages.continueButton}
-                  </button>
-                </form>
-              </div>
-            ) : null}
+                  <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
+                    <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
+                      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate">
+                        {demoCopy.platformAccess.stages.promptLabel}
+                      </p>
+                      <p className="mt-3 text-3xl font-semibold text-ink">
+                        {activeChallenge.prompt}
+                      </p>
+                      <p className="mt-4 text-sm leading-6 text-slate">{activeChallenge.helper}</p>
+                    </div>
 
-            {stage === 4 && pendingRecord ? (
-              <div className="mt-4 space-y-5">
+                    <label className="block space-y-2">
+                      <span className="text-sm font-medium text-ink">
+                        {demoCopy.platformAccess.stages.responseLabel}
+                      </span>
+                      <input
+                        value={stageState.input}
+                        onChange={(event) =>
+                          setStageState({
+                            input: event.target.value,
+                            error: null,
+                          })
+                        }
+                        className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-base outline-none transition focus:border-signal"
+                        placeholder={activeChallenge.placeholder}
+                      />
+                    </label>
+
+                    {stageState.error ? (
+                      <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+                        {stageState.error}
+                      </div>
+                    ) : null}
+
+                    <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
+                      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ember">
+                        {demoCopy.platformAccess.stages.keySequenceLabel}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-ink">
+                        {accessKeyParts.length > 0
+                          ? accessKeyParts.join(" | ")
+                          : demoCopy.platformAccess.stages.keySequenceEmpty}
+                      </p>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
+                    >
+                      {stage === 3
+                        ? demoCopy.platformAccess.stages.unlockButton
+                        : demoCopy.platformAccess.stages.continueButton}
+                    </button>
+                  </form>
+                </div>
+              ) : null}
+
+              {stage === 4 && pendingRecord ? (
+                <div className="mt-4 space-y-5">
                 <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
                   <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
                     {demoCopy.platformAccess.completion.keyEyebrow}
@@ -754,21 +756,14 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                     {demoCopy.platformAccess.completion.enterButton}
                   </button>
                 </div>
-              </div>
-            ) : null}
-            </div>
-          </section>
+                </div>
+              ) : null}
 
-          <div className="mt-4 w-full lg:flex lg:justify-end">
-            <div className="w-full space-y-4 lg:w-[46%]">
-              <div className="rounded-[1.5rem] border border-slate-200 bg-white/95 p-4 shadow-panel backdrop-blur">
+              <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-mist p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
                   {demoCopy.platformAccess.header.invitationTitle}
                 </p>
-                <p className="mt-2 text-sm leading-6 text-slate">
-                  {demoCopy.platformAccess.header.invitationBody}
-                </p>
-                <div className="mt-4 flex flex-col gap-3 md:flex-row md:items-end">
+                <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-end">
                   <label className="block flex-1 space-y-2">
                     <span className="text-sm font-medium text-ink">
                       {demoCopy.platformAccess.header.invitationLabel}
@@ -802,92 +797,90 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               </div>
 
               {invitationRecord ? (
-                <div className="space-y-5 rounded-[1.75rem] border border-slate-200 bg-white/95 p-5 shadow-panel backdrop-blur">
-                <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
-                  <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
-                    {demoCopy.platformAccess.invitationResult.eyebrow}
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-ink">
-                    {demoCopy.platformAccess.invitationResult.title}
-                  </h2>
-                  <p className="mt-3 text-sm leading-6 text-slate">
-                    {invitationRecord.ownerName ||
-                      demoCopy.platformAccess.invitationResult.ownerFallback}
-                    {" · "}
-                    {invitationRecord.ownerEmail ||
-                      demoCopy.platformAccess.invitationResult.emailFallback}
-                  </p>
-                  <p className="mt-1 text-sm leading-6 text-slate">
-                    Root key created {formatDateTime(invitationRecord.unlockedAt)}
-                  </p>
-                </div>
-
-                {ownerActionError ? (
-                  <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
-                    {ownerActionError}
+                <div className="mt-6 space-y-5 rounded-[1.75rem] border border-slate-200 bg-white p-5">
+                  <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
+                      {demoCopy.platformAccess.invitationResult.eyebrow}
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold text-ink">
+                      {demoCopy.platformAccess.invitationResult.title}
+                    </h2>
+                    <p className="mt-3 text-sm leading-6 text-slate">
+                      {invitationRecord.ownerName ||
+                        demoCopy.platformAccess.invitationResult.ownerFallback}
+                      {" · "}
+                      {invitationRecord.ownerEmail ||
+                        demoCopy.platformAccess.invitationResult.emailFallback}
+                    </p>
+                    <p className="mt-1 text-sm leading-6 text-slate">
+                      Root key created {formatDateTime(invitationRecord.unlockedAt)}
+                    </p>
                   </div>
-                ) : null}
 
-                <div className="space-y-4">
-                  {invitationPackages.length === 0 ? (
-                    <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-4 text-sm leading-6 text-slate">
-                      {demoCopy.platformAccess.invitationResult.noPackages}
+                  {ownerActionError ? (
+                    <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+                      {ownerActionError}
                     </div>
                   ) : null}
 
-                  {invitationPackages.map((pkg) => (
-                    <div
-                      key={pkg.manifest.packageId}
-                      className="rounded-[1.5rem] border border-slate-200 bg-white p-4"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="text-lg font-semibold text-ink">{pkg.manifest.title}</p>
-                          <p className="mt-1 text-sm text-slate">{pkg.manifest.packageId}</p>
-                          <p className="mt-1 text-sm text-slate">
-                            {formatDateTime(pkg.manifest.createdAt)}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleInvitationDownload(pkg.manifest.packageId)
-                            }
-                            disabled={isDownloadingPackageId === pkg.manifest.packageId}
-                            className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
-                          >
-                            {isDownloadingPackageId === pkg.manifest.packageId
-                              ? demoCopy.retrieveExperience.lookup.retrievingButton
-                              : demoCopy.platformAccess.invitationResult.downloadRecordsButton}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleInvitationDelete(pkg.manifest.packageId)}
-                            disabled={isDeletingPackageId === pkg.manifest.packageId}
-                            className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
-                          >
-                            {isDeletingPackageId === pkg.manifest.packageId
-                              ? demoCopy.retrieveExperience.lookup.retrievingButton
-                              : demoCopy.platformAccess.invitationResult.deleteButton}
-                          </button>
+                  <div className="space-y-4">
+                    {invitationPackages.length === 0 ? (
+                      <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-4 text-sm leading-6 text-slate">
+                        {demoCopy.platformAccess.invitationResult.noPackages}
+                      </div>
+                    ) : null}
+
+                    {invitationPackages.map((pkg) => (
+                      <div
+                        key={pkg.manifest.packageId}
+                        className="rounded-[1.5rem] border border-slate-200 bg-white p-4"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="text-lg font-semibold text-ink">{pkg.manifest.title}</p>
+                            <p className="mt-1 text-sm text-slate">{pkg.manifest.packageId}</p>
+                            <p className="mt-1 text-sm text-slate">
+                              {formatDateTime(pkg.manifest.createdAt)}
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleInvitationDownload(pkg.manifest.packageId)}
+                              disabled={isDownloadingPackageId === pkg.manifest.packageId}
+                              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                            >
+                              {isDownloadingPackageId === pkg.manifest.packageId
+                                ? demoCopy.retrieveExperience.lookup.retrievingButton
+                                : demoCopy.platformAccess.invitationResult.downloadRecordsButton}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleInvitationDelete(pkg.manifest.packageId)}
+                              disabled={isDeletingPackageId === pkg.manifest.packageId}
+                              className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
+                            >
+                              {isDeletingPackageId === pkg.manifest.packageId
+                                ? demoCopy.retrieveExperience.lookup.retrievingButton
+                                : demoCopy.platformAccess.invitationResult.deleteButton}
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
 
-                <button
-                  type="button"
-                  onClick={handleInvitationEnter}
-                  className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
-                >
-                  {demoCopy.platformAccess.invitationResult.enterButton}
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleInvitationEnter}
+                    className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
+                  >
+                    {demoCopy.platformAccess.invitationResult.enterButton}
+                  </button>
                 </div>
               ) : null}
             </div>
-          </div>
+          </section>
         </div>
       </div>
     </PlatformAccessSessionContext.Provider>
