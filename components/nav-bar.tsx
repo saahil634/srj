@@ -10,6 +10,7 @@ const links: Array<{ href: Route; label: string }> = [
   { href: "/", label: demoCopy.app.nav.links.overview },
   { href: "/create", label: demoCopy.app.nav.links.create },
   { href: "/open", label: demoCopy.app.nav.links.open },
+  { href: "/retrieve" as Route, label: demoCopy.app.nav.links.retrieve },
 ];
 
 export function NavBar() {

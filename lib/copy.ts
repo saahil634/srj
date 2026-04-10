@@ -10,6 +10,7 @@ export const demoCopy = {
         overview: "Overview",
         create: "Create SRJ",
         open: "Open SRJ",
+        retrieve: "Retrive SRJ Packages",
         logout: "Logout",
       },
     },
@@ -35,6 +36,12 @@ export const demoCopy = {
         title: "Open SRJ package",
         description:
           "Review SRJ package metadata, access records, and agreements made to terms and conditions of use.",
+      },
+      retrieve: {
+        label: "Retrive SRJ Packages",
+        title: "Retrive SRJ packages",
+        description:
+          "Find stored SRJ packages by entering the matching SRJ-access-key, then open or delete only the matching records.",
       },
     },
     launchFlowLabel: "Get Started",
@@ -73,6 +80,16 @@ export const demoCopy = {
       title: "Review the SRJ package, and unlock files after agreeing to terms and conditions of use",
       description:
         "This recipient view keeps file metadata visible while placing file access restricted until and unless the recipient agreeing to terms and conditions of use.",
+    },
+  },
+
+  // Retrieve page
+  retrievePage: {
+    hero: {
+      eyebrow: "Retrive SRJ Packages",
+      title: "Retrive stored SRJ packages by SRJ-access-key",
+      description:
+        "Use the SRJ-access-key to find matching package records without exposing the full package list by default.",
     },
   },
 
@@ -163,7 +180,8 @@ export const demoCopy = {
     },
     packageLoader: {
       eyebrow: "Package loader",
-      title: "Choose a package",
+      title: "Active package",
+      body: "Open SRJ shows only the package you explicitly created, retrieved, or imported.",
     },
     recipientStatus: {
       eyebrow: "Recipient status",
@@ -183,22 +201,40 @@ export const demoCopy = {
       reviewTerms: "Review and accept terms and conditions of use",
       downloadZip: "Download SRJ package",
     },
-    deletePackage: {
-      eyebrow: "Delete dataset",
-      body:
-        "Remove the selected dataset by confirming its system-generated package ID with the matching SRJ-access-key.",
-      toggleButton: "Delete dataset",
-      packageIdLabel: "Package ID:",
-      accessKeyLabel: "SRJ-access-key",
-      accessKeyPlaceholder: "Enter the SRJ-access-key used for this dataset",
-      confirmButton: "Confirm delete",
-      deletingButton: "Deleting dataset...",
-    },
     unlockFacts: {
       packageId: "Package ID",
       acceptedAt: "Accepted at",
       governance: "Governance",
       governanceValue: "Derivative SRJ package unlocked",
+    },
+  },
+
+  // Retrieve flow
+  retrieveExperience: {
+    lookup: {
+      eyebrow: "Package retrieval",
+      title: "Find packages by SRJ-access-key",
+      body:
+        "Enter the SRJ-access-key to retrieve matching package records. Packages remain hidden until a matching key is provided.",
+      keyLabel: "SRJ-access-key",
+      keyPlaceholder: "Enter the SRJ-access-key used to create the package",
+      retrieveButton: "Retrive matching packages",
+      retrievingButton: "Retriving packages...",
+      emptyResults: "No SRJ packages matched that SRJ-access-key.",
+      resultsTitle: "Matching SRJ packages",
+      openButton: "Open package",
+      deleteButton: "Delete package",
+      packageIdLabel: "Package ID",
+      keyIdLabel: "SRJ key ID",
+      deletePanelTitle: "Delete this package",
+      deletePanelBody:
+        "To delete a package, confirm the package ID and the same SRJ-access-key used when it was created.",
+      confirmDeleteButton: "Confirm delete",
+      deletingButton: "Deleting package...",
+    },
+    errors: {
+      missingKey: "Enter an SRJ-access-key to retrieve packages.",
+      deleteFallback: "Unable to delete the SRJ package.",
     },
   },
 

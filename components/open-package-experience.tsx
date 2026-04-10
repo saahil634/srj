@@ -7,34 +7,26 @@ import { FilePreviewGrid } from "@/components/file-preview-grid";
 import { PackageMetadataCard } from "@/components/package-metadata-card";
 import { TermsAcceptanceModal } from "@/components/terms-acceptance-modal";
 import { demoCopy } from "@/lib/copy";
-import { GOVERNANCE_NOTICE } from "@/lib/constants";
-import { usePlatformAccessSession } from "@/lib/platform-access-session";
 import { useSRJStore } from "@/lib/srj-store";
 import { SRJPackageManifest } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 export function OpenPackageExperience() {
-  const { accessRecord } = usePlatformAccessSession();
   const {
     packages,
     activePackageId,
     setActivePackageId,
     importManifest,
     saveAcceptance,
-    deletePackage,
     isLoading,
     loadError,
   } = useSRJStore();
   const [showModal, setShowModal] = useState(false);
   const [manifestText, setManifestText] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
-  const [showDeletePanel, setShowDeletePanel] = useState(false);
-  const [deleteAccessKey, setDeleteAccessKey] = useState("");
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const activePackage = useMemo(
-    () => packages.find((entry) => entry.manifest.packageId === activePackageId) ?? packages[0] ?? null,
+    () => packages.find((entry) => entry.manifest.packageId === activePackageId) ?? null,
     [activePackageId, packages],
   );
 
@@ -45,17 +37,6 @@ export function OpenPackageExperience() {
       setActivePackageId(queryPackageId);
     }
   }, [packages, setActivePackageId]);
-
-  useEffect(() => {
-    if (accessRecord?.accessKey && !deleteAccessKey) {
-      setDeleteAccessKey(accessRecord.accessKey);
-    }
-  }, [accessRecord, deleteAccessKey]);
-
-  useEffect(() => {
-    setDeleteError(null);
-    setShowDeletePanel(false);
-  }, [activePackageId]);
 
   function handleImport() {
     setImportError(null);
@@ -73,25 +54,6 @@ export function OpenPackageExperience() {
       setImportError(
         error instanceof Error ? error.message : demoCopy.openExperience.importManifest.errors.unableToImport,
       );
-    }
-  }
-
-  async function handleDeletePackage() {
-    if (!activePackage) {
-      return;
-    }
-
-    setDeleteError(null);
-    setIsDeleting(true);
-
-    try {
-      await deletePackage(activePackage.manifest.packageId, deleteAccessKey);
-      setDeleteAccessKey(accessRecord?.accessKey ?? "");
-      setShowDeletePanel(false);
-    } catch (error) {
-      setDeleteError(error instanceof Error ? error.message : "Unable to delete the SRJ package.");
-    } finally {
-      setIsDeleting(false);
     }
   }
 
@@ -117,6 +79,12 @@ export function OpenPackageExperience() {
             className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
           >
             {demoCopy.openExperience.emptyState.createLink}
+          </Link>
+          <Link
+            href={"/retrieve" as const}
+            className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal"
+          >
+            {demoCopy.app.nav.links.retrieve}
           </Link>
         </div>
 
@@ -172,28 +140,14 @@ export function OpenPackageExperience() {
             <h2 className="mt-2 text-2xl font-semibold text-ink">
               {demoCopy.openExperience.packageLoader.title}
             </h2>
+            <p className="mt-3 text-sm leading-6 text-slate">
+              {demoCopy.openExperience.packageLoader.body}
+            </p>
           </div>
 
-          <div className="space-y-3">
-            {packages.map((entry) => (
-              <div
-                key={entry.manifest.packageId}
-                className={`rounded-[1.5rem] border px-4 py-3 transition ${
-                  entry.manifest.packageId === activePackage.manifest.packageId
-                    ? "border-signal bg-teal-50"
-                    : "border-slate-200 bg-mist hover:border-slate-300"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setActivePackageId(entry.manifest.packageId)}
-                  className="w-full text-left"
-                >
-                  <p className="font-semibold text-ink">{entry.manifest.title}</p>
-                  <p className="mt-1 text-sm text-slate">{entry.manifest.packageId}</p>
-                </button>
-              </div>
-            ))}
+          <div className="rounded-[1.5rem] border border-slate-200 bg-mist p-4">
+            <p className="font-semibold text-ink">{activePackage.manifest.title}</p>
+            <p className="mt-2 text-sm text-slate">{activePackage.manifest.packageId}</p>
           </div>
 
           <div className="rounded-[1.5rem] bg-mist p-4">
@@ -210,13 +164,6 @@ export function OpenPackageExperience() {
                 ? `${demoCopy.openExperience.recipientStatus.acceptedByPrefix} ${activePackage.acceptance.fullName} ${demoCopy.openExperience.recipientStatus.acceptedOnJoiner} ${formatDateTime(activePackage.acceptance.acceptedAt)}.`
                 : demoCopy.openExperience.recipientStatus.lockedBody}
             </p>
-          </div>
-
-          <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ember">
-              {demoCopy.openExperience.governanceNotice.eyebrow}
-            </p>
-            <p className="mt-2 text-sm leading-6 text-ink">{GOVERNANCE_NOTICE}</p>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -238,63 +185,12 @@ export function OpenPackageExperience() {
                 {demoCopy.openExperience.actions.downloadZip}
               </a>
             ) : null}
-          </div>
-
-          <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-700">
-                  {demoCopy.openExperience.deletePackage.eyebrow}
-                </p>
-                <p className="mt-2 text-sm leading-6 text-red-900">
-                  {demoCopy.openExperience.deletePackage.body}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowDeletePanel((current) => !current)}
-                className="rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-white"
-              >
-                {demoCopy.openExperience.deletePackage.toggleButton}
-              </button>
-            </div>
-
-            {showDeletePanel ? (
-              <div className="mt-4 space-y-3">
-                <div className="rounded-[1.25rem] border border-red-200 bg-white px-4 py-3 text-sm text-slate">
-                  <span className="font-semibold text-ink">
-                    {demoCopy.openExperience.deletePackage.packageIdLabel}
-                  </span>{" "}
-                  {activePackage.manifest.packageId}
-                </div>
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-ink">
-                    {demoCopy.openExperience.deletePackage.accessKeyLabel}
-                  </span>
-                  <input
-                    value={deleteAccessKey}
-                    onChange={(event) => setDeleteAccessKey(event.target.value)}
-                    className="w-full rounded-2xl border border-red-200 bg-white px-4 py-3 outline-none transition focus:border-red-400"
-                    placeholder={demoCopy.openExperience.deletePackage.accessKeyPlaceholder}
-                  />
-                </label>
-                {deleteError ? (
-                  <div className="rounded-[1.25rem] border border-red-200 bg-white p-3 text-sm leading-6 text-red-700">
-                    {deleteError}
-                  </div>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={handleDeletePackage}
-                  disabled={!deleteAccessKey.trim() || isDeleting}
-                  className="rounded-full bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {isDeleting
-                    ? demoCopy.openExperience.deletePackage.deletingButton
-                    : demoCopy.openExperience.deletePackage.confirmButton}
-                </button>
-              </div>
-            ) : null}
+            <Link
+              href={"/retrieve" as const}
+              className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal"
+            >
+              {demoCopy.app.nav.links.retrieve}
+            </Link>
           </div>
         </aside>
       </section>

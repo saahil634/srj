@@ -22,6 +22,12 @@ const flows: Array<{
     title: demoCopy.home.flows.open.title,
     description: demoCopy.home.flows.open.description,
   },
+  {
+    href: "/retrieve" as Route,
+    label: demoCopy.home.flows.retrieve.label,
+    title: demoCopy.home.flows.retrieve.title,
+    description: demoCopy.home.flows.retrieve.description,
+  },
 ];
 
 export default function HomePage() {
@@ -33,7 +39,7 @@ export default function HomePage() {
         description={demoCopy.home.hero.description}
       />
 
-      <section className="grid gap-6 md:grid-cols-2">
+      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {flows.map((flow) => (
           <Link
             key={flow.href}
