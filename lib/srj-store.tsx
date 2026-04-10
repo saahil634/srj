@@ -64,7 +64,15 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
         }
 
         setPackages(payload.packages ?? []);
-        setActivePackageId((current) => current ?? payload.packages?.[0]?.manifest.packageId ?? null);
+        setActivePackageId((current) => {
+          if (!current) {
+            return null;
+          }
+
+          return payload.packages?.some((entry) => entry.manifest.packageId === current)
+            ? current
+            : null;
+        });
       } catch (error) {
         if (!isMounted) {
           return;
