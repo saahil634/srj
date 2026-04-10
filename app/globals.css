@@ -30,3 +30,27 @@ code,
 pre {
   font-family: var(--font-mono);
 }
+
+.srj-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(253, 224, 71, 0.8) rgba(255, 255, 255, 0.08);
+}
+
+.srj-scrollbar::-webkit-scrollbar {
+  width: 12px;
+}
+
+.srj-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+}
+
+.srj-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(253, 224, 71, 0.8);
+  border-radius: 999px;
+  border: 2px solid rgba(15, 23, 42, 0.28);
+}
+
+.srj-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(252, 211, 77, 0.95);
+}
