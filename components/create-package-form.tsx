@@ -14,6 +14,7 @@ import { useSRJStore } from "@/lib/srj-store";
 export function CreatePackageForm() {
   const router = useRouter();
   const { accessRecord } = usePlatformAccessSession();
+  const currentSecureKey = accessRecord?.keyType === "access-key" ? null : accessRecord;
   const { createPackage, loadError } = useSRJStore();
   const [title, setTitle] = useState<string>(demoCopy.createForm.defaultTitle);
   const [termsPreset, setTermsPreset] = useState<string>(TERMS_PRESET);
@@ -55,7 +56,7 @@ export function CreatePackageForm() {
         title,
         termsPreset,
         packageAccessKey,
-        ownerRootKeyFileId: accessRecord?.accessKeyId ?? null,
+        ownerSecureKeyFileId: currentSecureKey?.accessKeyId ?? null,
         files,
       });
 
@@ -117,7 +118,7 @@ export function CreatePackageForm() {
               {demoCopy.createForm.fields.rootKeyLabel}
             </span>
             <input
-              value={accessRecord?.accessKey ?? demoCopy.createForm.fields.rootKeyFallback}
+              value={currentSecureKey?.accessKey ?? demoCopy.createForm.fields.rootKeyFallback}
               readOnly
               className="w-full rounded-2xl border border-slate-200 bg-mist px-4 py-3 text-slate outline-none"
             />

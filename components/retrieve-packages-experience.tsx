@@ -12,6 +12,7 @@ import { formatDateTime } from "@/lib/utils";
 export function RetrievePackagesExperience() {
   const router = useRouter();
   const { accessRecord } = usePlatformAccessSession();
+  const currentSecureKey = accessRecord?.keyType === "access-key" ? null : accessRecord;
   const { packages, setActivePackageId, loadError, isLoading, reloadPackages, deletePackage } =
     useSRJStore();
   const [queryKey, setQueryKey] = useState("");
@@ -70,7 +71,7 @@ export function RetrievePackagesExperience() {
   async function handleLoadOwnerPackages() {
     setOwnerError(null);
 
-    if (!accessRecord?.accessKey) {
+    if (!currentSecureKey?.accessKey) {
       setOwnerError(demoCopy.platformAccess.errors.acceptTerms);
       return;
     }
@@ -81,11 +82,11 @@ export function RetrievePackagesExperience() {
     try {
       const params = new URLSearchParams({
         mode: "owner",
-        rootKey: accessRecord.accessKey,
+        secureKey: currentSecureKey.accessKey,
       });
 
-      if (accessRecord.accessKeyId) {
-        params.set("rootKeyFileId", accessRecord.accessKeyId);
+      if (currentSecureKey.accessKeyId) {
+        params.set("secureKeyFileId", currentSecureKey.accessKeyId);
       }
 
       const response = await fetch(`/api/packages?${params.toString()}`, {
@@ -97,7 +98,7 @@ export function RetrievePackagesExperience() {
       };
 
       if (!response.ok) {
-        throw new Error(payload.error || "Unable to load packages for this SRJ-root-key.");
+        throw new Error(payload.error || "Unable to load packages for this SRJ-secure-key.");
       }
 
       setOwnerPackages(payload.packages ?? []);
@@ -105,7 +106,7 @@ export function RetrievePackagesExperience() {
       setOwnerError(
         nextError instanceof Error
           ? nextError.message
-          : "Unable to load packages for this SRJ-root-key.",
+          : "Unable to load packages for this SRJ-secure-key.",
       );
     } finally {
       setIsLoadingOwnerPackages(false);
@@ -113,8 +114,8 @@ export function RetrievePackagesExperience() {
   }
 
   async function handleDelete(pkg: StoredDemoPackage) {
-    if (!accessRecord?.accessKey) {
-      setOwnerError("Unlock the platform to use your SRJ-root-key.");
+    if (!currentSecureKey?.accessKey) {
+      setOwnerError("Unlock the platform to use your SRJ-secure-key.");
       return;
     }
 
@@ -124,8 +125,8 @@ export function RetrievePackagesExperience() {
     try {
       await deletePackage(
         pkg.manifest.packageId,
-        accessRecord.accessKey,
-        accessRecord.accessKeyId ?? null,
+        currentSecureKey.accessKey,
+        currentSecureKey.accessKeyId ?? null,
       );
       setOwnerPackages((current) =>
         current.filter((entry) => entry.manifest.packageId !== pkg.manifest.packageId),
@@ -140,8 +141,8 @@ export function RetrievePackagesExperience() {
   }
 
   async function handleDownloadAccessRecords(pkg: StoredDemoPackage) {
-    if (!accessRecord?.accessKey) {
-      setOwnerError("Unlock the platform to use your SRJ-root-key.");
+    if (!currentSecureKey?.accessKey) {
+      setOwnerError("Unlock the platform to use your SRJ-secure-key.");
       return;
     }
 
@@ -155,8 +156,8 @@ export function RetrievePackagesExperience() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          rootKey: accessRecord.accessKey,
-          rootKeyFileId: accessRecord.accessKeyId ?? null,
+          secureKey: currentSecureKey.accessKey,
+          secureKeyFileId: currentSecureKey.accessKeyId ?? null,
         }),
       });
 
@@ -254,7 +255,7 @@ export function RetrievePackagesExperience() {
             {demoCopy.retrieveExperience.ownerFlow.rootKeyLabel}
           </p>
           <p className="mt-2 break-all text-sm leading-6 text-slate">
-            {accessRecord?.accessKey ?? demoCopy.retrieveExperience.ownerFlow.rootKeyFallback}
+            {currentSecureKey?.accessKey ?? demoCopy.retrieveExperience.ownerFlow.rootKeyFallback}
           </p>
         </div>
 

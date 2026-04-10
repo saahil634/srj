@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const ownerEmail = String(payload.ownerEmail ?? "").trim() || null;
 
     if (!accessKey) {
-      return NextResponse.json({ error: "Access key is required." }, { status: 400 });
+      return NextResponse.json({ error: "Secure-key is required." }, { status: 400 });
     }
 
     const storedFile = await createStoredAccessKeyFile({
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to store the SRJ access key file.",
+            : "Unable to store the SRJ secure-key file.",
       },
       { status: 500 },
     );
@@ -86,7 +86,7 @@ export async function PATCH(request: Request) {
     const ownerEmail = String(payload.ownerEmail ?? "").trim() || null;
 
     if (!accessKeyId) {
-      return NextResponse.json({ error: "Access key ID is required." }, { status: 400 });
+      return NextResponse.json({ error: "Secure-key ID is required." }, { status: 400 });
     }
 
     const record = await updateStoredRootKeyProfile({
@@ -106,7 +106,7 @@ export async function PATCH(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to update the SRJ root-key profile.",
+            : "Unable to update the SRJ secure-key profile.",
       },
       { status: 500 },
     );
@@ -123,7 +123,7 @@ export async function GET(request: Request) {
     const accessKeyId = searchParams.get("accessKeyId")?.trim() ?? "";
 
     if (!accessKeyId) {
-      return NextResponse.json({ error: "Access key ID is required." }, { status: 400 });
+      return NextResponse.json({ error: "Secure-key ID is required." }, { status: 400 });
     }
 
     const storedFile = await getStoredAccessKeyFile(accessKeyId);
@@ -141,7 +141,7 @@ export async function GET(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to download the SRJ access key file.",
+            : "Unable to download the SRJ secure-key file.",
       },
       { status: 500 },
     );

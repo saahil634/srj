@@ -247,7 +247,9 @@ export function OpenPackageExperience() {
 
       <TermsAcceptanceModal
         packageId={activePackage.manifest.packageId}
-        accessorRootKey={accessRecord?.accessKey ?? null}
+        accessorRootKey={
+          accessRecord?.keyType === "access-key" ? null : (accessRecord?.accessKey ?? null)
+        }
         open={showModal}
         onClose={() => setShowModal(false)}
         onAccepted={(acceptance) =>

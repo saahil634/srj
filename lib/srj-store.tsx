@@ -15,7 +15,7 @@ interface PackageDraftInput {
   title: string;
   termsPreset: string;
   packageAccessKey: string;
-  ownerRootKeyFileId?: string | null;
+  ownerSecureKeyFileId?: string | null;
   files: File[];
 }
 
@@ -28,8 +28,8 @@ interface SRJStoreValue {
   createPackage: (input: PackageDraftInput) => Promise<StoredDemoPackage>;
   deletePackage: (
     packageId: string,
-    rootKey: string,
-    rootKeyFileId?: string | null,
+    secureKey: string,
+    secureKeyFileId?: string | null,
   ) => Promise<void>;
   setActivePackageId: (packageId: string | null) => void;
   importManifest: (manifest: SRJPackageManifest) => void;
@@ -105,13 +105,19 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
       isLoading,
       loadError,
       reloadPackages: loadPackages,
-      createPackage: async ({ title, termsPreset, packageAccessKey, ownerRootKeyFileId, files }) => {
+      createPackage: async ({
+        title,
+        termsPreset,
+        packageAccessKey,
+        ownerSecureKeyFileId,
+        files,
+      }) => {
         const formData = new FormData();
         formData.set("title", title);
         formData.set("termsPreset", termsPreset);
         formData.set("packageAccessKey", packageAccessKey);
-        if (ownerRootKeyFileId) {
-          formData.set("ownerRootKeyFileId", ownerRootKeyFileId);
+        if (ownerSecureKeyFileId) {
+          formData.set("ownerSecureKeyFileId", ownerSecureKeyFileId);
         }
 
         files.forEach((file) => {
@@ -141,7 +147,7 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
 
         return payload.package;
       },
-      deletePackage: async (packageId, rootKey, rootKeyFileId) => {
+      deletePackage: async (packageId, secureKey, secureKeyFileId) => {
         const response = await fetch("/api/packages", {
           method: "DELETE",
           headers: {
@@ -149,8 +155,8 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
           },
           body: JSON.stringify({
             packageId,
-            rootKey,
-            rootKeyFileId,
+            secureKey,
+            secureKeyFileId,
           }),
         });
         const payload = (await response.json()) as {

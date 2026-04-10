@@ -19,20 +19,23 @@ export async function POST(
   try {
     const { packageId } = await context.params;
     const payload = (await request.json()) as {
+      secureKey?: string;
+      secureKeyFileId?: string;
       rootKey?: string;
       rootKeyFileId?: string;
     };
-    const rootKey = String(payload.rootKey ?? "").trim();
-    const rootKeyFileId = String(payload.rootKeyFileId ?? "").trim() || null;
+    const secureKey = String(payload.secureKey ?? payload.rootKey ?? "").trim();
+    const secureKeyFileId =
+      String(payload.secureKeyFileId ?? payload.rootKeyFileId ?? "").trim() || null;
 
-    if (!rootKey) {
-      return NextResponse.json({ error: "SRJ root key is required." }, { status: 400 });
+    if (!secureKey) {
+      return NextResponse.json({ error: "SRJ secure-key is required." }, { status: 400 });
     }
 
     const storedFile = await getStoredAccessRecordFileForOwner({
       packageId,
-      rootKey,
-      rootKeyFileId,
+      rootKey: secureKey,
+      rootKeyFileId: secureKeyFileId,
     });
 
     return new Response(storedFile.response.stream, {
@@ -52,7 +55,7 @@ export async function POST(
       {
         error: message,
       },
-      { status: message.includes("root key") ? 403 : 500 },
+      { status: message.includes("secure-key") || message.includes("root key") ? 403 : 500 },
     );
   }
 }

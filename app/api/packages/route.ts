@@ -27,13 +27,17 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get("mode")?.trim() ?? "";
-    const rootKey = searchParams.get("rootKey")?.trim() ?? "";
-    const rootKeyFileId = searchParams.get("rootKeyFileId")?.trim() ?? "";
+    const secureKey =
+      searchParams.get("secureKey")?.trim() ?? searchParams.get("rootKey")?.trim() ?? "";
+    const secureKeyFileId =
+      searchParams.get("secureKeyFileId")?.trim() ??
+      searchParams.get("rootKeyFileId")?.trim() ??
+      "";
     const packages =
       mode === "owner"
         ? await listStoredPackagesByOwnerRootKey({
-            rootKey,
-            rootKeyFileId: rootKeyFileId || null,
+            rootKey: secureKey,
+            rootKeyFileId: secureKeyFileId || null,
           })
         : await listStoredPackages();
 
@@ -62,7 +66,8 @@ export async function POST(request: Request) {
     const title = String(formData.get("title") ?? "").trim();
     const termsPreset = String(formData.get("termsPreset") ?? "").trim();
     const packageAccessKey = String(formData.get("packageAccessKey") ?? "").trim();
-    const ownerRootKeyFileId = String(formData.get("ownerRootKeyFileId") ?? "").trim() || null;
+    const ownerRootKeyFileId =
+      String(formData.get("ownerSecureKeyFileId") ?? formData.get("ownerRootKeyFileId") ?? "").trim() || null;
     const files = formData
       .getAll("files")
       .filter((value): value is File => value instanceof File && value.size > 0);
@@ -131,22 +136,25 @@ export async function DELETE(request: Request) {
   try {
     const payload = (await request.json()) as {
       packageId?: string;
+      secureKey?: string;
+      secureKeyFileId?: string;
       rootKey?: string;
       rootKeyFileId?: string;
     };
     const packageId = String(payload.packageId ?? "").trim();
-    const rootKey = String(payload.rootKey ?? "").trim();
-    const rootKeyFileId = String(payload.rootKeyFileId ?? "").trim() || null;
+    const secureKey = String(payload.secureKey ?? payload.rootKey ?? "").trim();
+    const secureKeyFileId =
+      String(payload.secureKeyFileId ?? payload.rootKeyFileId ?? "").trim() || null;
 
     if (!packageId) {
       return NextResponse.json({ error: "Package ID is required." }, { status: 400 });
     }
 
-    if (!rootKey) {
-      return NextResponse.json({ error: "SRJ root key is required." }, { status: 400 });
+    if (!secureKey) {
+      return NextResponse.json({ error: "SRJ secure-key is required." }, { status: 400 });
     }
 
-    await deleteStoredPackage({ packageId, rootKey, rootKeyFileId });
+    await deleteStoredPackage({ packageId, rootKey: secureKey, rootKeyFileId: secureKeyFileId });
 
     return NextResponse.json({ packageId });
   } catch (error) {
@@ -159,7 +167,7 @@ export async function DELETE(request: Request) {
       {
         error: message,
       },
-      { status: message.includes("root key") || message.includes("does not match") ? 403 : 500 },
+      { status: message.includes("secure-key") || message.includes("root key") || message.includes("does not match") ? 403 : 500 },
     );
   }
 }

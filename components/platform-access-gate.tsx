@@ -18,6 +18,7 @@ import { StoredDemoPackage } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 type AccessStage = 1 | 2 | 3 | 4;
+type KeyLookupMode = "secure-key" | "access-key";
 
 interface StageState {
   input: string;
@@ -25,7 +26,8 @@ interface StageState {
 }
 
 interface InvitationLookupPayload {
-  rootKeyRecord: {
+  keyType?: KeyLookupMode;
+  secureKeyRecord?: {
     accessKeyId: string;
     accessKey: string;
     createdAt: string;
@@ -76,6 +78,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
   const [isPersistingProfile, setIsPersistingProfile] = useState(false);
 
   const [invitationCode, setInvitationCode] = useState("");
+  const [lookupMode, setLookupMode] = useState<KeyLookupMode>("secure-key");
   const [invitationError, setInvitationError] = useState<string | null>(null);
   const [isCheckingInvitation, setIsCheckingInvitation] = useState(false);
   const [invitationRecord, setInvitationRecord] = useState<PlatformAccessRecord | null>(null);
@@ -171,8 +174,8 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
       return;
     }
 
-    const text = [
-      "SRJ ROOT KEY",
+      const text = [
+      "SRJ SECURE KEY",
       `Created At: ${record.unlockedAt}`,
       `Owner Name: ${record.ownerName || "Unlinked"}`,
       `Owner Email: ${record.ownerEmail || "Unlinked"}`,
@@ -187,7 +190,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     const link = document.createElement("a");
 
     link.href = url;
-    link.download = `${record.accessKeyId ?? "srj-root-key"}.txt`;
+    link.download = `${record.accessKeyId ?? "srj-secure-key"}.txt`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -333,6 +336,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
       const nextRecord: PlatformAccessRecord = {
         unlockedAt: new Date().toISOString(),
         accessKey: nextParts.join(" | "),
+        keyType: "secure-key",
       };
 
       try {
@@ -388,21 +392,31 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          invitationCode: normalizedCode,
+          keyType: lookupMode,
+          keyValue: normalizedCode,
         }),
       });
       const payload = (await response.json()) as InvitationLookupPayload & { error?: string };
 
-      if (!response.ok || !payload.rootKeyRecord) {
-        throw new Error(payload.error || demoCopy.platformAccess.errors.invitationCodeInvalid);
+      if (!response.ok) {
+        throw new Error(
+          payload.error ||
+            (lookupMode === "secure-key"
+              ? demoCopy.platformAccess.errors.invitationCodeInvalid
+              : demoCopy.platformAccess.errors.accessKeyInvalid),
+        );
       }
 
       const nextRecord: PlatformAccessRecord = {
         unlockedAt: new Date().toISOString(),
-        accessKey: payload.rootKeyRecord.accessKey,
-        accessKeyId: payload.rootKeyRecord.accessKeyId,
-        ownerName: payload.rootKeyRecord.ownerName ?? null,
-        ownerEmail: payload.rootKeyRecord.ownerEmail ?? null,
+        accessKey:
+          lookupMode === "secure-key"
+            ? payload.secureKeyRecord?.accessKey ?? normalizedCode
+            : normalizedCode,
+        accessKeyId: payload.secureKeyRecord?.accessKeyId ?? null,
+        keyType: lookupMode,
+        ownerName: payload.secureKeyRecord?.ownerName ?? null,
+        ownerEmail: payload.secureKeyRecord?.ownerEmail ?? null,
       };
 
       setInvitationRecord(nextRecord);
@@ -413,7 +427,9 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
       setInvitationError(
         lookupError instanceof Error
           ? lookupError.message
-          : demoCopy.platformAccess.errors.invitationCodeInvalid,
+          : lookupMode === "secure-key"
+            ? demoCopy.platformAccess.errors.invitationCodeInvalid
+            : demoCopy.platformAccess.errors.accessKeyInvalid,
       );
     } finally {
       setIsCheckingInvitation(false);
@@ -421,7 +437,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
   }
 
   async function handleInvitationDelete(packageId: string) {
-    if (!invitationRecord?.accessKey) {
+    if (!invitationRecord?.accessKey || invitationRecord.keyType === "access-key") {
       return;
     }
 
@@ -436,8 +452,8 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({
           packageId,
-          rootKey: invitationRecord.accessKey,
-          rootKeyFileId: invitationRecord.accessKeyId ?? null,
+          secureKey: invitationRecord.accessKey,
+          secureKeyFileId: invitationRecord.accessKeyId ?? null,
         }),
       });
       const payload = (await response.json()) as { error?: string };
@@ -461,7 +477,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
   }
 
   async function handleInvitationDownload(packageId: string) {
-    if (!invitationRecord?.accessKey) {
+    if (!invitationRecord?.accessKey || invitationRecord.keyType === "access-key") {
       return;
     }
 
@@ -475,8 +491,8 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          rootKey: invitationRecord.accessKey,
-          rootKeyFileId: invitationRecord.accessKeyId ?? null,
+          secureKey: invitationRecord.accessKey,
+          secureKeyFileId: invitationRecord.accessKeyId ?? null,
         }),
       });
 
@@ -631,6 +647,13 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                       <span className="text-sm font-medium text-ink">
                         {demoCopy.platformAccess.stages.responseLabel}
                       </span>
+                      <p className="text-sm leading-6 text-slate">
+                        {stage === 1
+                          ? demoCopy.platformAccess.stages.responseHelp
+                          : stage === 2
+                            ? demoCopy.platformAccess.stages.stageTwoResponseHelp
+                            : demoCopy.platformAccess.stages.stageThreeResponseHelp}
+                      </p>
                       <input
                         value={stageState.input}
                         onChange={(event) =>
@@ -759,10 +782,40 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                 </div>
               ) : null}
 
-              <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-mist p-4">
+              <div className="mt-10 rounded-[1.5rem] border border-slate-200 bg-mist p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
                   {demoCopy.platformAccess.header.invitationTitle}
                 </p>
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  {(["secure-key", "access-key"] as const).map((mode) => {
+                    const selected = lookupMode === mode;
+                    const label =
+                      mode === "secure-key"
+                        ? demoCopy.platformAccess.header.invitationTypeSecure
+                        : demoCopy.platformAccess.header.invitationTypeAccess;
+
+                    return (
+                      <button
+                        key={mode}
+                        type="button"
+                        onClick={() => {
+                          setLookupMode(mode);
+                          setInvitationError(null);
+                          setInvitationRecord(null);
+                          setInvitationPackages([]);
+                          setOwnerActionError(null);
+                        }}
+                        className={`rounded-[1.1rem] border px-4 py-3 text-sm font-semibold transition ${
+                          selected
+                            ? "border-signal bg-white text-signal shadow-sm"
+                            : "border-slate-200 bg-white/70 text-slate hover:border-slate-300"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
                 <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-end">
                   <label className="block flex-1 space-y-2">
                     <span className="text-sm font-medium text-ink">
@@ -775,7 +828,11 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                         setInvitationError(null);
                       }}
                       className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-signal"
-                      placeholder={demoCopy.platformAccess.header.invitationPlaceholder}
+                      placeholder={
+                        lookupMode === "secure-key"
+                          ? demoCopy.platformAccess.header.secureKeyPlaceholder
+                          : demoCopy.platformAccess.header.accessKeyPlaceholder
+                      }
                     />
                   </label>
                   <button
@@ -786,7 +843,9 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                   >
                     {isCheckingInvitation
                       ? demoCopy.platformAccess.header.invitationLoadingButton
-                      : demoCopy.platformAccess.header.invitationButton}
+                      : lookupMode === "secure-key"
+                        ? demoCopy.platformAccess.header.secureKeyButton
+                        : demoCopy.platformAccess.header.accessKeyButton}
                   </button>
                 </div>
                 {invitationError ? (
@@ -803,18 +862,28 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                       {demoCopy.platformAccess.invitationResult.eyebrow}
                     </p>
                     <h2 className="mt-2 text-2xl font-semibold text-ink">
-                      {demoCopy.platformAccess.invitationResult.title}
+                      {invitationRecord.keyType === "secure-key"
+                        ? demoCopy.platformAccess.invitationResult.title
+                        : "Packages linked to this SRJ-access-key"}
                     </h2>
-                    <p className="mt-3 text-sm leading-6 text-slate">
-                      {invitationRecord.ownerName ||
-                        demoCopy.platformAccess.invitationResult.ownerFallback}
-                      {" · "}
-                      {invitationRecord.ownerEmail ||
-                        demoCopy.platformAccess.invitationResult.emailFallback}
-                    </p>
-                    <p className="mt-1 text-sm leading-6 text-slate">
-                      Root key created {formatDateTime(invitationRecord.unlockedAt)}
-                    </p>
+                    {invitationRecord.keyType === "secure-key" ? (
+                      <>
+                        <p className="mt-3 text-sm leading-6 text-slate">
+                          {invitationRecord.ownerName ||
+                            demoCopy.platformAccess.invitationResult.ownerFallback}
+                          {" · "}
+                          {invitationRecord.ownerEmail ||
+                            demoCopy.platformAccess.invitationResult.emailFallback}
+                        </p>
+                        <p className="mt-1 text-sm leading-6 text-slate">
+                          Secure-key created {formatDateTime(invitationRecord.unlockedAt)}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="mt-3 text-sm leading-6 text-slate">
+                        Shared package access was matched through this SRJ-access-key.
+                      </p>
+                    )}
                   </div>
 
                   {ownerActionError ? (
@@ -826,7 +895,9 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                   <div className="space-y-4">
                     {invitationPackages.length === 0 ? (
                       <div className="rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-4 text-sm leading-6 text-slate">
-                        {demoCopy.platformAccess.invitationResult.noPackages}
+                        {invitationRecord.keyType === "secure-key"
+                          ? demoCopy.platformAccess.invitationResult.noPackages
+                          : demoCopy.platformAccess.invitationResult.noAccessKeyPackages}
                       </div>
                     ) : null}
 
@@ -846,24 +917,41 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                           <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
-                              onClick={() => handleInvitationDownload(pkg.manifest.packageId)}
-                              disabled={isDownloadingPackageId === pkg.manifest.packageId}
-                              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                              onClick={() => {
+                                persistAccessRecord(invitationRecord);
+                                setAccessRecord(invitationRecord);
+                                setInvitationRecord(null);
+                                setInvitationPackages([]);
+                                window.location.href = `/open?packageId=${pkg.manifest.packageId}`;
+                              }}
+                              className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal"
                             >
-                              {isDownloadingPackageId === pkg.manifest.packageId
-                                ? demoCopy.retrieveExperience.lookup.retrievingButton
-                                : demoCopy.platformAccess.invitationResult.downloadRecordsButton}
+                              {demoCopy.platformAccess.invitationResult.openButton}
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => handleInvitationDelete(pkg.manifest.packageId)}
-                              disabled={isDeletingPackageId === pkg.manifest.packageId}
-                              className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
-                            >
-                              {isDeletingPackageId === pkg.manifest.packageId
-                                ? demoCopy.retrieveExperience.lookup.retrievingButton
-                                : demoCopy.platformAccess.invitationResult.deleteButton}
-                            </button>
+                            {invitationRecord.keyType === "secure-key" ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleInvitationDownload(pkg.manifest.packageId)}
+                                  disabled={isDownloadingPackageId === pkg.manifest.packageId}
+                                  className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                                >
+                                  {isDownloadingPackageId === pkg.manifest.packageId
+                                    ? demoCopy.retrieveExperience.lookup.retrievingButton
+                                    : demoCopy.platformAccess.invitationResult.downloadRecordsButton}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleInvitationDelete(pkg.manifest.packageId)}
+                                  disabled={isDeletingPackageId === pkg.manifest.packageId}
+                                  className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
+                                >
+                                  {isDeletingPackageId === pkg.manifest.packageId
+                                    ? demoCopy.retrieveExperience.lookup.retrievingButton
+                                    : demoCopy.platformAccess.invitationResult.deleteButton}
+                                </button>
+                              </>
+                            ) : null}
                           </div>
                         </div>
                       </div>

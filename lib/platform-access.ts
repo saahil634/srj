@@ -29,6 +29,7 @@ export interface PlatformAccessRecord {
   unlockedAt: string;
   accessKey: string;
   accessKeyId?: string | null;
+  keyType?: "secure-key" | "access-key";
   ownerName?: string | null;
   ownerEmail?: string | null;
 }

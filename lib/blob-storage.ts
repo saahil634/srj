@@ -168,13 +168,13 @@ export async function createStoredPackage({
   ensureBlobConfigured();
 
   if (!ownerRootKeyFileId) {
-    throw new Error("An SRJ-root-key must be linked before packages can be created.");
+    throw new Error("An SRJ-secure-key must be linked before packages can be created.");
   }
 
   const existingPackageCount = await countStoredPackagesByOwnerRootKeyFileId(ownerRootKeyFileId);
 
   if (existingPackageCount >= 3) {
-    throw new Error("Only 3 SRJ packages can be created per SRJ-root-key at this time.");
+    throw new Error("Only 3 SRJ packages can be created per SRJ-secure-key at this time.");
   }
 
   const packageId = generateId("srj");
@@ -315,14 +315,14 @@ function buildAccessKeyFileText(input: {
   accessEventsText?: string;
 }) {
   return [
-    "SRJ ROOT KEY",
-    `Root Key File ID: ${input.accessKeyId}`,
+    "SRJ SECURE KEY",
+    `Secure Key File ID: ${input.accessKeyId}`,
     `Created At: ${input.createdAt}`,
     `Geolocation: ${input.geoSummary || "Unavailable"}`,
     `Owner Name: ${input.ownerName || "Unlinked"}`,
     `Owner Email: ${input.ownerEmail || "Unlinked"}`,
     "",
-    "ROOT KEY",
+    "SECURE KEY",
     input.accessKey,
     "",
     "ACCESS EVENTS",
@@ -370,11 +370,13 @@ export async function createStoredAccessKeyFile(input: {
 
 function parseStoredRootKeyRecordText(text: string): StoredRootKeyRecord {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
-  const rootKeyIndex = lines.findIndex((line) => line.trim() === "ROOT KEY");
+  const rootKeyIndex = lines.findIndex(
+    (line) => line.trim() === "SECURE KEY" || line.trim() === "ROOT KEY",
+  );
   const accessEventsIndex = lines.findIndex((line) => line.trim() === "ACCESS EVENTS");
 
   if (rootKeyIndex === -1 || accessEventsIndex === -1 || rootKeyIndex + 1 >= lines.length) {
-    throw new Error("Stored SRJ root key record is malformed.");
+    throw new Error("Stored SRJ secure-key record is malformed.");
   }
 
   const readValue = (label: string) => {
@@ -391,7 +393,7 @@ function parseStoredRootKeyRecordText(text: string): StoredRootKeyRecord {
   };
 
   return {
-    accessKeyId: readValue("Root Key File ID"),
+    accessKeyId: readValue("Secure Key File ID") || readValue("Root Key File ID"),
     createdAt: readValue("Created At"),
     geoSummary: normalizeOptional(readValue("Geolocation")),
     ownerName: normalizeOptional(readValue("Owner Name")),
@@ -459,20 +461,20 @@ async function verifyPackageOwnerRootKey(input: {
   const ownerRootKeyReference = pkg.manifest.ownerRootKeyReference;
 
   if (!ownerRootKeyReference?.accessKeyFileId) {
-    throw new Error("This package is not linked to an owner SRJ root key.");
+    throw new Error("This package is not linked to an owner SRJ secure-key.");
   }
 
   if (
     input.rootKeyFileId &&
     ownerRootKeyReference.accessKeyFileId !== input.rootKeyFileId.trim()
   ) {
-    throw new Error("The SRJ root key does not match this package owner.");
+    throw new Error("The SRJ secure-key does not match this package owner.");
   }
 
   const storedRootKey = await readStoredRootKeyValue(ownerRootKeyReference.accessKeyFileId);
 
   if (storedRootKey !== input.rootKey.trim()) {
-    throw new Error("The SRJ root key does not match this package owner.");
+    throw new Error("The SRJ secure-key does not match this package owner.");
   }
 
   return {

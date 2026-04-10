@@ -4,6 +4,7 @@ import {
   BLOB_CONFIG_ERROR,
   findStoredRootKeyRecordByValue,
   isBlobConfigured,
+  listStoredPackages,
   listStoredPackagesByOwnerRootKey,
 } from "@/lib/blob-storage";
 
@@ -15,17 +16,43 @@ export async function POST(request: Request) {
   }
 
   try {
-    const payload = (await request.json()) as { invitationCode?: string };
-    const invitationCode = String(payload.invitationCode ?? "").trim();
+    const payload = (await request.json()) as {
+      keyType?: "secure-key" | "access-key";
+      keyValue?: string;
+      invitationCode?: string;
+    };
+    const keyType = payload.keyType === "access-key" ? "access-key" : "secure-key";
+    const keyValue = String(payload.keyValue ?? payload.invitationCode ?? "").trim();
 
-    if (!invitationCode) {
-      return NextResponse.json({ error: "Invitation code is required." }, { status: 400 });
+    if (!keyValue) {
+      return NextResponse.json({ error: "A key is required." }, { status: 400 });
     }
 
-    const rootKeyRecord = await findStoredRootKeyRecordByValue(invitationCode);
+    if (keyType === "access-key") {
+      const packages = (await listStoredPackages()).filter((entry) => {
+        const reference = entry.manifest.srjKeyReference;
+
+        return (
+          reference.accessKey === keyValue ||
+          reference.relationExpression === keyValue ||
+          reference.keyId === keyValue
+        );
+      });
+
+      if (packages.length === 0) {
+        return NextResponse.json({ error: "Access-key not found." }, { status: 404 });
+      }
+
+      return NextResponse.json({
+        keyType,
+        packages,
+      });
+    }
+
+    const rootKeyRecord = await findStoredRootKeyRecordByValue(keyValue);
 
     if (!rootKeyRecord) {
-      return NextResponse.json({ error: "Invitation code not found." }, { status: 404 });
+      return NextResponse.json({ error: "Secure-key not found." }, { status: 404 });
     }
 
     const packages = await listStoredPackagesByOwnerRootKey({
@@ -34,7 +61,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      rootKeyRecord: {
+      keyType,
+      secureKeyRecord: {
         accessKeyId: rootKeyRecord.accessKeyId,
         accessKey: rootKeyRecord.accessKey,
         createdAt: rootKeyRecord.createdAt,
@@ -49,7 +77,7 @@ export async function POST(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to look up the invitation code.",
+            : "Unable to look up the key.",
       },
       { status: 500 },
     );
