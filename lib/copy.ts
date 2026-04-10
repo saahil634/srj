@@ -333,12 +333,16 @@ export const demoCopy = {
       invitationTitle: "Already have a previous key?",
       invitationTypeSecure: "Secure-key",
       invitationTypeAccess: "Access-key",
+      invitationScreenTitle: "Access a previous key",
+      invitationScreenBody:
+        "Use a secure-key or access-key to return to previously linked SRJ packages.",
       invitationLabel: "Key value",
       secureKeyPlaceholder: "Enter your SRJ-secure-key",
       accessKeyPlaceholder: "Enter your SRJ-access-key",
       secureKeyButton: "Access with secure-key",
       accessKeyButton: "Access with access-key",
       invitationLoadingButton: "Checking key...",
+      invitationBackButton: "Go back",
     },
     terms: [
       "This SRJ website is currently under development and is available to invited users only. To request an invitation, please email the site administrator at turamp@washington.edu.",

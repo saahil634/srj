@@ -626,8 +626,11 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                         {demoCopy.platformAccess.header.invitationTitle}
                       </p>
                       <h2 className="mt-2 text-3xl font-semibold tracking-tight text-ink">
-                        Access a previous key
+                        {demoCopy.platformAccess.header.invitationScreenTitle}
                       </h2>
+                      <p className="mt-3 max-w-xl text-sm leading-6 text-slate">
+                        {demoCopy.platformAccess.header.invitationScreenBody}
+                      </p>
                     </div>
                     <button
                       type="button"
@@ -641,7 +644,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                       }}
                       className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate transition hover:border-slate-300 hover:text-ink"
                     >
-                      Hide
+                      {demoCopy.platformAccess.header.invitationBackButton}
                     </button>
                   </div>
 
