@@ -234,6 +234,7 @@ export const demoCopy = {
     },
     errors: {
       missingKey: "Enter an SRJ-access-key to retrieve packages.",
+      incorrectKey: "The SRJ-access-key is incorrect.",
       deleteFallback: "Unable to delete the SRJ package.",
     },
   },
