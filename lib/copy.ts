@@ -302,7 +302,7 @@ export const demoCopy = {
   // Platform access screen
   platformAccess: {
     header: {
-      eyebrow: "Platform access authentication",
+      eyebrow: "Access Terms and Conditions",
       title: "Secure Relational Jump (.SRJ): Treating Data as a Relation",
       description:
         "Review the terms and conditions below, then complete three secure-key steps to access this session.",

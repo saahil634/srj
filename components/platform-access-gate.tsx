@@ -283,8 +283,8 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
       <div className="pointer-events-none select-none opacity-25 blur-sm">{children}</div>
 
       <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/55 p-6 backdrop-blur-sm">
-        <section className="grid max-h-[90vh] w-full max-w-6xl overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="flex min-h-0 flex-col overflow-hidden bg-ink px-7 py-8 text-white lg:px-8">
+        <section className="grid max-h-[92vh] w-full max-w-6xl overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[minmax(0,1fr)_minmax(0,0.96fr)]">
+          <div className="flex min-h-0 flex-col overflow-auto bg-ink px-7 py-8 text-white lg:px-8">
             <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
               {demoCopy.platformAccess.header.eyebrow}
             </p>
@@ -295,23 +295,19 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               {demoCopy.platformAccess.header.description}
             </p>
 
-            <div className="mt-8 min-h-0 rounded-[1.75rem] border border-white/15 bg-white/10 p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
-                {demoCopy.platformAccess.header.termsEyebrow}
-              </p>
-              <p className="mt-3 text-sm font-semibold tracking-[0.08em] text-white/85">
-                {demoCopy.platformAccess.header.lastUpdatedLabel}
-              </p>
-              <div className="srj-scrollbar mt-4 max-h-[36vh] min-h-[18rem] overflow-y-auto rounded-[1.25rem] border border-white/10 bg-black/10 px-4 py-4 lg:max-h-[40vh]">
-                <div className="space-y-4 text-sm leading-7 text-mist">
-                  {PLATFORM_ACCESS_TERMS.map((term) => (
-                    <p key={term}>{term}</p>
-                  ))}
-                </div>
+            <p className="mt-8 text-sm font-semibold tracking-[0.08em] text-white/85">
+              {demoCopy.platformAccess.header.lastUpdatedLabel}
+            </p>
+
+            <div className="srj-scrollbar mt-5 max-h-[40vh] min-h-[18rem] overflow-y-auto rounded-[1.5rem] border border-white/12 bg-white/10 px-5 py-5 lg:max-h-[43vh]">
+              <div className="space-y-4 text-sm leading-7 text-mist">
+                {PLATFORM_ACCESS_TERMS.map((term) => (
+                  <p key={term}>{term}</p>
+                ))}
               </div>
             </div>
 
-            <label className="mt-6 flex items-start gap-4 rounded-[1.5rem] border-2 border-amber-300/80 bg-amber-300/10 p-5 text-base leading-7 text-white shadow-[0_0_0_1px_rgba(253,224,71,0.15)]">
+            <label className="mt-5 flex items-start gap-4 rounded-[1.5rem] border-2 border-amber-300/80 bg-amber-300/10 p-5 text-base leading-7 text-white shadow-[0_0_0_1px_rgba(253,224,71,0.15)]">
               <input
                 type="checkbox"
                 checked={acceptedTerms}
