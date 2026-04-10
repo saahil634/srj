@@ -579,7 +579,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
       <div className="fixed inset-0 z-[70] overflow-y-auto bg-ink/55 p-4 backdrop-blur-sm md:p-6">
         <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col justify-center">
-          <section className="grid max-h-[92vh] w-full overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
+          <section className="grid w-full overflow-hidden rounded-[2.25rem] border border-white/40 bg-white shadow-panel lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]">
             <div className="flex min-h-0 flex-col overflow-auto bg-ink px-6 py-7 text-white lg:px-8 lg:py-8">
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/60">
                 {demoCopy.platformAccess.header.eyebrow}
@@ -618,7 +618,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
             </div>
 
             <div className="flex h-full min-h-0 flex-col px-6 py-6 lg:px-7 lg:py-7">
-              <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              <div className="flex-1">
                 {stage < 4 && activeChallenge ? (
                   <div className="mt-4">
                   <div className="flex items-center justify-between gap-3">
@@ -787,7 +787,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                 ) : null}
               </div>
 
-              {showInvitationLookup || invitationRecord || invitationError ? (
+              {showInvitationLookup ? (
                 <div className="mt-6 shrink-0 rounded-[1.35rem] border border-slate-200 bg-mist p-3.5">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
@@ -889,7 +889,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                 </div>
               )}
 
-              {invitationRecord ? (
+              {showInvitationLookup && invitationRecord ? (
                 <div className="mt-5 space-y-5 rounded-[1.6rem] border border-slate-200 bg-white p-4.5">
                   <div className="rounded-[1.75rem] border border-emerald-200 bg-emerald-50 p-5">
                     <p className="text-sm font-semibold uppercase tracking-[0.2em] text-signal">
