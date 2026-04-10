@@ -1,27 +1,36 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { FileDropzone } from "@/components/file-dropzone";
 import { ManifestPreview } from "@/components/manifest-preview";
 import { demoCopy } from "@/lib/copy";
 import { MAX_TOTAL_UPLOAD_BYTES, TERMS_PRESET, UPLOAD_ACCEPT_LABEL } from "@/lib/constants";
-import { evaluateArithmeticExpression } from "@/lib/platform-access";
+import { usePlatformAccessSession } from "@/lib/platform-access-session";
 import { exceedsUploadLimit } from "@/lib/upload-rules";
 import { useSRJStore } from "@/lib/srj-store";
-import { StoredDemoPackage } from "@/lib/types";
 
 export function CreatePackageForm() {
+  const router = useRouter();
+  const { accessRecord } = usePlatformAccessSession();
   const { createPackage, loadError } = useSRJStore();
   const [title, setTitle] = useState<string>(demoCopy.createForm.defaultTitle);
   const [termsPreset, setTermsPreset] = useState<string>(TERMS_PRESET);
   const [srjRelation, setSrjRelation] = useState<string>(demoCopy.createForm.defaultSrjRelation);
   const [files, setFiles] = useState<File[]>([]);
-  const [latestPackage, setLatestPackage] = useState<StoredDemoPackage | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (
+      accessRecord?.accessKey &&
+      (!srjRelation.trim() || srjRelation === demoCopy.createForm.defaultSrjRelation)
+    ) {
+      setSrjRelation(accessRecord.accessKey);
+    }
+  }, [accessRecord, srjRelation]);
 
   async function handleCreate() {
     setError(null);
@@ -41,7 +50,7 @@ export function CreatePackageForm() {
       return;
     }
 
-    if (evaluateArithmeticExpression(srjRelation) === null) {
+    if (!srjRelation.trim()) {
       setError(demoCopy.createForm.errors.invalidRelation);
       return;
     }
@@ -53,11 +62,15 @@ export function CreatePackageForm() {
         title,
         termsPreset,
         srjRelation,
+        accessKeyId:
+          accessRecord?.accessKey === srjRelation.trim()
+            ? accessRecord.accessKeyId ?? null
+            : null,
         files,
       });
 
-      setLatestPackage(nextPackage);
       setFiles([]);
+      router.push(`/open?packageId=${nextPackage.manifest.packageId}`);
     } catch (creationError) {
       setError(
         creationError instanceof Error
@@ -157,24 +170,12 @@ export function CreatePackageForm() {
               {error}
             </div>
           ) : null}
-
-          {latestPackage ? (
-            <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-ink">
-              <p className="font-semibold">
-                {demoCopy.createForm.successTitlePrefix} {latestPackage.manifest.packageId}
-              </p>
-              <p className="mt-1">{demoCopy.createForm.successBody}</p>
-              <Link href="/open" className="mt-3 inline-flex font-semibold text-signal hover:text-ink">
-                {demoCopy.createForm.successLink}
-              </Link>
-            </div>
-          ) : null}
         </div>
       </section>
 
       <ManifestPreview
         className="xl:sticky xl:top-24"
-        manifest={latestPackage?.manifest ?? null}
+        manifest={null}
       />
     </div>
   );

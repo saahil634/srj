@@ -28,6 +28,7 @@ export interface PlatformAccessChallengeSet {
 export interface PlatformAccessRecord {
   unlockedAt: string;
   accessKey: string;
+  accessKeyId?: string | null;
 }
 
 function randomInt(min: number, max: number) {

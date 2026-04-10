@@ -10,6 +10,7 @@ export const demoCopy = {
         overview: "Overview",
         create: "Create SRJ",
         open: "Open SRJ",
+        logout: "Logout",
       },
     },
   },
@@ -103,7 +104,7 @@ export const demoCopy = {
     successLink: "Continue to Open SRJ →",
     errors: {
       totalUploadLimit: "Total upload size must stay within 10 MB.",
-      invalidRelation: "Enter a valid SRJ relation expression such as 10-2, 7+1, or 4*2.",
+      invalidRelation: "Enter the SRJ-access-key generated for this session, or another non-empty SRJ reference.",
       unableToCreate: "Unable to create the SRJ package.",
     },
   },
@@ -182,6 +183,17 @@ export const demoCopy = {
       reviewTerms: "Review and accept terms and conditions of use",
       downloadZip: "Download SRJ package",
     },
+    deletePackage: {
+      eyebrow: "Delete dataset",
+      body:
+        "Remove the selected dataset by confirming its system-generated package ID with the matching SRJ-access-key.",
+      toggleButton: "Delete dataset",
+      packageIdLabel: "Package ID:",
+      accessKeyLabel: "SRJ-access-key",
+      accessKeyPlaceholder: "Enter the SRJ-access-key used for this dataset",
+      confirmButton: "Confirm delete",
+      deletingButton: "Deleting dataset...",
+    },
     unlockFacts: {
       packageId: "Package ID",
       acceptedAt: "Accepted at",
@@ -205,6 +217,7 @@ export const demoCopy = {
       relation: "Relation",
       targetValue: "Target value",
     },
+    targetValueFallback: "Session-derived key",
     assetCountSuffix: "assets",
     srjKeyReferenceBodyPrefix:
       "Every file in this SRJ package is associated to the uniquee SRJ-access-key",
@@ -269,7 +282,7 @@ export const demoCopy = {
     ],
     stages: {
       stageOneTitle: "Secure-key 1",
-      stageOneHelper: "Solve the arithmetic eqxpression to open the next verification step.",
+      stageOneHelper: "Solve the arithmetic expression to open the next verification step.",
       stageOnePlaceholder: "Enter the numeric result",
       stageTwoTitle: "Secure-key 2",
       stageTwoHelper:
@@ -299,6 +312,7 @@ export const demoCopy = {
       statusEyebrow: "Session unlocked",
       statusBody:
         "Platform terms accepted and access authentication completed successfully.",
+      downloadButton: "Download SRJ-access-key (.txt)",
       enterButton: "Enter SRJ Demo",
     },
     errors: {

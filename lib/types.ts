@@ -3,7 +3,9 @@ export type DemoFileKind = "image" | "audio" | "pdf" | "video" | "text" | "other
 export interface SRJKeyReference {
   keyId: string;
   relationExpression: string;
-  targetValue: number;
+  targetValue: number | null;
+  accessKey?: string | null;
+  accessKeyFileId?: string | null;
   sessionScoped: boolean;
 }
 

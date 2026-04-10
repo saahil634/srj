@@ -15,6 +15,7 @@ interface PackageDraftInput {
   title: string;
   termsPreset: string;
   srjRelation: string;
+  accessKeyId?: string | null;
   files: File[];
 }
 
@@ -24,6 +25,7 @@ interface SRJStoreValue {
   isLoading: boolean;
   loadError: string | null;
   createPackage: (input: PackageDraftInput) => Promise<StoredDemoPackage>;
+  deletePackage: (packageId: string, accessKey: string) => Promise<void>;
   setActivePackageId: (packageId: string | null) => void;
   importManifest: (manifest: SRJPackageManifest) => void;
   saveAcceptance: (packageId: string, acceptance: AcceptanceRecord) => void;
@@ -90,11 +92,14 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
       activePackageId,
       isLoading,
       loadError,
-      createPackage: async ({ title, termsPreset, srjRelation, files }) => {
+      createPackage: async ({ title, termsPreset, srjRelation, accessKeyId, files }) => {
         const formData = new FormData();
         formData.set("title", title);
         formData.set("termsPreset", termsPreset);
         formData.set("srjRelation", srjRelation);
+        if (accessKeyId) {
+          formData.set("accessKeyId", accessKeyId);
+        }
 
         files.forEach((file) => {
           formData.append("files", file);
@@ -122,6 +127,39 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
         setActivePackageId(payload.package.manifest.packageId);
 
         return payload.package;
+      },
+      deletePackage: async (packageId, accessKey) => {
+        const response = await fetch("/api/packages", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            packageId,
+            accessKey,
+          }),
+        });
+        const payload = (await response.json()) as {
+          packageId?: string;
+          error?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to delete the SRJ package.");
+        }
+
+        let nextActivePackageId: string | null = null;
+
+        setPackages((current) => {
+          const nextPackages = current.filter((entry) => entry.manifest.packageId !== packageId);
+
+          nextActivePackageId = nextPackages[0]?.manifest.packageId ?? null;
+
+          return nextPackages;
+        });
+        setActivePackageId((currentActive) =>
+          currentActive === packageId ? nextActivePackageId : currentActive,
+        );
       },
       setActivePackageId,
       importManifest: (manifest) => {

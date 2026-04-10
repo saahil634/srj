@@ -1,7 +1,10 @@
+"use client";
+
 import type { Route } from "next";
 import Link from "next/link";
 
 import { demoCopy } from "@/lib/copy";
+import { usePlatformAccessSession } from "@/lib/platform-access-session";
 
 const links: Array<{ href: Route; label: string }> = [
   { href: "/", label: demoCopy.app.nav.links.overview },
@@ -10,6 +13,8 @@ const links: Array<{ href: Route; label: string }> = [
 ];
 
 export function NavBar() {
+  const { accessRecord, logout } = usePlatformAccessSession();
+
   return (
     <header className="border-b border-white/60 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -29,6 +34,15 @@ export function NavBar() {
               {link.label}
             </Link>
           ))}
+          {accessRecord ? (
+            <button
+              type="button"
+              onClick={logout}
+              className="rounded-full px-4 py-2 font-medium text-slate transition hover:bg-mist hover:text-ink"
+            >
+              {demoCopy.app.nav.links.logout}
+            </button>
+          ) : null}
         </nav>
       </div>
     </header>

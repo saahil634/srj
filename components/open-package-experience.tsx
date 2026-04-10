@@ -1,35 +1,61 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { FilePreviewGrid } from "@/components/file-preview-grid";
 import { PackageMetadataCard } from "@/components/package-metadata-card";
 import { TermsAcceptanceModal } from "@/components/terms-acceptance-modal";
 import { demoCopy } from "@/lib/copy";
 import { GOVERNANCE_NOTICE } from "@/lib/constants";
+import { usePlatformAccessSession } from "@/lib/platform-access-session";
 import { useSRJStore } from "@/lib/srj-store";
 import { SRJPackageManifest } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 export function OpenPackageExperience() {
+  const { accessRecord } = usePlatformAccessSession();
   const {
     packages,
     activePackageId,
     setActivePackageId,
     importManifest,
     saveAcceptance,
+    deletePackage,
     isLoading,
     loadError,
   } = useSRJStore();
   const [showModal, setShowModal] = useState(false);
   const [manifestText, setManifestText] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
+  const [showDeletePanel, setShowDeletePanel] = useState(false);
+  const [deleteAccessKey, setDeleteAccessKey] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const activePackage = useMemo(
     () => packages.find((entry) => entry.manifest.packageId === activePackageId) ?? packages[0] ?? null,
     [activePackageId, packages],
   );
+
+  useEffect(() => {
+    const queryPackageId = new URLSearchParams(window.location.search).get("packageId");
+
+    if (queryPackageId && packages.some((entry) => entry.manifest.packageId === queryPackageId)) {
+      setActivePackageId(queryPackageId);
+    }
+  }, [packages, setActivePackageId]);
+
+  useEffect(() => {
+    if (accessRecord?.accessKey && !deleteAccessKey) {
+      setDeleteAccessKey(accessRecord.accessKey);
+    }
+  }, [accessRecord, deleteAccessKey]);
+
+  useEffect(() => {
+    setDeleteError(null);
+    setShowDeletePanel(false);
+  }, [activePackageId]);
 
   function handleImport() {
     setImportError(null);
@@ -47,6 +73,25 @@ export function OpenPackageExperience() {
       setImportError(
         error instanceof Error ? error.message : demoCopy.openExperience.importManifest.errors.unableToImport,
       );
+    }
+  }
+
+  async function handleDeletePackage() {
+    if (!activePackage) {
+      return;
+    }
+
+    setDeleteError(null);
+    setIsDeleting(true);
+
+    try {
+      await deletePackage(activePackage.manifest.packageId, deleteAccessKey);
+      setDeleteAccessKey(accessRecord?.accessKey ?? "");
+      setShowDeletePanel(false);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : "Unable to delete the SRJ package.");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -131,19 +176,23 @@ export function OpenPackageExperience() {
 
           <div className="space-y-3">
             {packages.map((entry) => (
-              <button
+              <div
                 key={entry.manifest.packageId}
-                type="button"
-                onClick={() => setActivePackageId(entry.manifest.packageId)}
-                className={`w-full rounded-[1.5rem] border px-4 py-3 text-left transition ${
+                className={`rounded-[1.5rem] border px-4 py-3 transition ${
                   entry.manifest.packageId === activePackage.manifest.packageId
                     ? "border-signal bg-teal-50"
                     : "border-slate-200 bg-mist hover:border-slate-300"
                 }`}
               >
-                <p className="font-semibold text-ink">{entry.manifest.title}</p>
-                <p className="mt-1 text-sm text-slate">{entry.manifest.packageId}</p>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActivePackageId(entry.manifest.packageId)}
+                  className="w-full text-left"
+                >
+                  <p className="font-semibold text-ink">{entry.manifest.title}</p>
+                  <p className="mt-1 text-sm text-slate">{entry.manifest.packageId}</p>
+                </button>
+              </div>
             ))}
           </div>
 
@@ -190,6 +239,63 @@ export function OpenPackageExperience() {
               </a>
             ) : null}
           </div>
+
+          <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-red-700">
+                  {demoCopy.openExperience.deletePackage.eyebrow}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-red-900">
+                  {demoCopy.openExperience.deletePackage.body}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDeletePanel((current) => !current)}
+                className="rounded-full border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-white"
+              >
+                {demoCopy.openExperience.deletePackage.toggleButton}
+              </button>
+            </div>
+
+            {showDeletePanel ? (
+              <div className="mt-4 space-y-3">
+                <div className="rounded-[1.25rem] border border-red-200 bg-white px-4 py-3 text-sm text-slate">
+                  <span className="font-semibold text-ink">
+                    {demoCopy.openExperience.deletePackage.packageIdLabel}
+                  </span>{" "}
+                  {activePackage.manifest.packageId}
+                </div>
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium text-ink">
+                    {demoCopy.openExperience.deletePackage.accessKeyLabel}
+                  </span>
+                  <input
+                    value={deleteAccessKey}
+                    onChange={(event) => setDeleteAccessKey(event.target.value)}
+                    className="w-full rounded-2xl border border-red-200 bg-white px-4 py-3 outline-none transition focus:border-red-400"
+                    placeholder={demoCopy.openExperience.deletePackage.accessKeyPlaceholder}
+                  />
+                </label>
+                {deleteError ? (
+                  <div className="rounded-[1.25rem] border border-red-200 bg-white p-3 text-sm leading-6 text-red-700">
+                    {deleteError}
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleDeletePackage}
+                  disabled={!deleteAccessKey.trim() || isDeleting}
+                  className="rounded-full bg-red-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isDeleting
+                    ? demoCopy.openExperience.deletePackage.deletingButton
+                    : demoCopy.openExperience.deletePackage.confirmButton}
+                </button>
+              </div>
+            ) : null}
+          </div>
         </aside>
       </section>
 
@@ -200,15 +306,11 @@ export function OpenPackageExperience() {
       />
 
       {isAccepted && activePackage.acceptance ? (
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-2">
           <UnlockFact label={demoCopy.openExperience.unlockFacts.packageId} value={activePackage.manifest.packageId} />
           <UnlockFact
             label={demoCopy.openExperience.unlockFacts.acceptedAt}
             value={formatDateTime(activePackage.acceptance.acceptedAt)}
-          />
-          <UnlockFact
-            label={demoCopy.openExperience.unlockFacts.governance}
-            value={demoCopy.openExperience.unlockFacts.governanceValue}
           />
         </section>
       ) : null}

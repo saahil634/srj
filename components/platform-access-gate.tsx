@@ -13,6 +13,7 @@ import {
   PlatformAccessChallengeSet,
   PlatformAccessRecord,
 } from "@/lib/platform-access";
+import { PlatformAccessSessionContext } from "@/lib/platform-access-session";
 
 type AccessStage = 1 | 2 | 3 | 4;
 
@@ -72,6 +73,31 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     setAccessKeyParts([]);
   }
 
+  function downloadAccessKeyFile(record: PlatformAccessRecord) {
+    if (record.accessKeyId) {
+      window.location.href = `/api/platform-access-keys?accessKeyId=${record.accessKeyId}`;
+      return;
+    }
+
+    const text = [
+      "SRJ ACCESS KEY",
+      `Created At: ${record.unlockedAt}`,
+      "",
+      record.accessKey,
+      "",
+    ].join("\n");
+    const blob = new Blob([text], {
+      type: "text/plain;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `${record.accessKeyId ?? "srj-access-key"}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   const activeChallenge = useMemo(() => {
     if (!challengeSet) {
       return null;
@@ -108,25 +134,22 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
   }, [challengeSet, stage]);
 
   if (!isHydrated || !challengeSet) {
-    return <>{children}</>;
+    return (
+      <PlatformAccessSessionContext.Provider
+        value={{ accessRecord, logout: resetAccessFlow }}
+      >
+        {children}
+      </PlatformAccessSessionContext.Provider>
+    );
   }
 
   if (accessRecord && !pendingRecord) {
     return (
-      <>
-        <div className="relative">
-          <div className="fixed right-6 top-6 z-[65]">
-            <button
-              type="button"
-              onClick={resetAccessFlow}
-              className="rounded-full border border-slate-200 bg-white/90 px-4 py-2 text-sm font-medium text-slate shadow-sm backdrop-blur transition hover:border-signal hover:text-ink"
-            >
-              {demoCopy.platformAccess.header.logoutButton}
-            </button>
-          </div>
-          {children}
-        </div>
-      </>
+      <PlatformAccessSessionContext.Provider
+        value={{ accessRecord, logout: resetAccessFlow }}
+      >
+        {children}
+      </PlatformAccessSessionContext.Provider>
     );
   }
 
@@ -143,7 +166,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     setStageState(createEmptyStageState());
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!challengeSet) {
@@ -222,6 +245,27 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
         accessKey: nextParts.join(" | "),
       };
 
+      try {
+        const response = await fetch("/api/platform-access-keys", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            accessKey: nextRecord.accessKey,
+          }),
+        });
+        const payload = (await response.json()) as {
+          accessKeyId?: string;
+        };
+
+        if (response.ok && payload.accessKeyId) {
+          nextRecord.accessKeyId = payload.accessKeyId;
+        }
+      } catch {
+        // Session access continues even if key-file persistence fails.
+      }
+
       window.sessionStorage.setItem(
         PLATFORM_ACCESS_STORAGE_KEY,
         JSON.stringify(nextRecord),
@@ -233,7 +277,9 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
   }
 
   return (
-    <>
+    <PlatformAccessSessionContext.Provider
+      value={{ accessRecord, logout: resetAccessFlow }}
+    >
       <div className="pointer-events-none select-none opacity-25 blur-sm">{children}</div>
 
       <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/55 p-6 backdrop-blur-sm">
@@ -369,6 +415,14 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
                 <button
                   type="button"
+                  onClick={() => downloadAccessKeyFile(pendingRecord)}
+                  className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal"
+                >
+                  {demoCopy.platformAccess.completion.downloadButton}
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => {
                     setAccessRecord(pendingRecord);
                     setPendingRecord(null);
@@ -382,6 +436,6 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
           </div>
         </section>
       </div>
-    </>
+    </PlatformAccessSessionContext.Provider>
   );
 }

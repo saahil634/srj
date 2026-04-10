@@ -1,4 +1,4 @@
-import { get, list, put } from "@vercel/blob";
+import { del, get, list, put } from "@vercel/blob";
 
 import { GOVERNANCE_NOTICE, TERMS_PRESET, TERMS_VERSION } from "@/lib/constants";
 import {
@@ -15,6 +15,7 @@ const PACKAGE_RECORD_PREFIX = "srj-demo/package-records";
 const PACKAGE_FILE_PREFIX = "srj-demo/package-files";
 const ACCEPTANCE_LOG_PREFIX = "srj-demo/acceptance-logs";
 const DERIVATIVE_ERROR_LOG_PREFIX = "srj-demo/derivative-error-logs";
+const ACCESS_KEY_FILE_PREFIX = "srj-demo/access-keys";
 
 export const BLOB_CONFIG_ERROR =
   "Blob storage is not configured. Add BLOB_READ_WRITE_TOKEN before creating packages or recording access events.";
@@ -23,6 +24,7 @@ interface CreateStoredPackageInput {
   title: string;
   termsPreset: string;
   srjRelation: string;
+  accessKeyId?: string | null;
   files: File[];
 }
 
@@ -46,6 +48,10 @@ function buildAcceptanceLogPath(packageId: string, acceptedAt: string) {
 
 function buildDerivativeErrorLogPath(packageId: string, loggedAt: string, fileId: string) {
   return `${DERIVATIVE_ERROR_LOG_PREFIX}/${packageId}/${loggedAt}-${fileId}.json`;
+}
+
+function buildAccessKeyFilePath(accessKeyId: string) {
+  return `${ACCESS_KEY_FILE_PREFIX}/${accessKeyId}.txt`;
 }
 
 export function buildPreviewUrl(packageId: string, pathname: string) {
@@ -81,6 +87,11 @@ async function writeJsonBlob(pathname: string, value: unknown) {
   });
 }
 
+async function listPathnames(prefix: string) {
+  const { blobs } = await list({ prefix });
+  return blobs.map((blob) => blob.pathname);
+}
+
 export async function getPrivateBlob(pathname: string) {
   ensureBlobConfigured();
 
@@ -113,6 +124,7 @@ export async function createStoredPackage({
   title,
   termsPreset,
   srjRelation,
+  accessKeyId,
   files,
 }: CreateStoredPackageInput) {
   ensureBlobConfigured();
@@ -120,10 +132,6 @@ export async function createStoredPackage({
   const packageId = generateId("srj");
   const createdAt = new Date().toISOString();
   const srjTargetValue = evaluateArithmeticExpression(srjRelation);
-
-  if (srjTargetValue === null) {
-    throw new Error("The SRJ relation reference must be a valid arithmetic expression.");
-  }
 
   const srjKeyId = generateId("srjk");
 
@@ -159,6 +167,8 @@ export async function createStoredPackage({
       keyId: srjKeyId,
       relationExpression: srjRelation,
       targetValue: srjTargetValue,
+      accessKey: srjRelation,
+      accessKeyFileId: accessKeyId ?? null,
       sessionScoped: true,
     },
     allowedUses: termsPreset || TERMS_PRESET,
@@ -240,6 +250,82 @@ export async function recordDerivativeErrorLog(input: {
   );
 
   return log;
+}
+
+export async function createStoredAccessKeyFile(input: { accessKey: string }) {
+  ensureBlobConfigured();
+
+  const accessKeyId = generateId("srjak");
+  const createdAt = new Date().toISOString();
+  const text = [
+    "SRJ ACCESS KEY",
+    `Created At: ${createdAt}`,
+    "",
+    input.accessKey,
+    "",
+  ].join("\n");
+
+  await put(buildAccessKeyFilePath(accessKeyId), text, {
+    access: "private",
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    contentType: "text/plain; charset=utf-8",
+  });
+
+  return {
+    accessKeyId,
+    createdAt,
+    pathname: buildAccessKeyFilePath(accessKeyId),
+    fileName: `${accessKeyId}.txt`,
+  };
+}
+
+export async function getStoredAccessKeyFile(accessKeyId: string) {
+  ensureBlobConfigured();
+
+  const pathname = buildAccessKeyFilePath(accessKeyId);
+  const response = await getPrivateBlob(pathname);
+
+  return {
+    pathname,
+    fileName: `${accessKeyId}.txt`,
+    response,
+  };
+}
+
+export async function deleteStoredPackage(input: { packageId: string; accessKey: string }) {
+  ensureBlobConfigured();
+
+  const pkg = await getStoredPackage(input.packageId);
+  const normalizedAccessKey = input.accessKey.trim();
+  const validKeys = [
+    pkg.manifest.srjKeyReference.accessKey,
+    pkg.manifest.srjKeyReference.relationExpression,
+    pkg.manifest.srjKeyReference.keyId,
+  ].filter((value): value is string => Boolean(value));
+
+  if (!validKeys.includes(normalizedAccessKey)) {
+    throw new Error("The SRJ access key does not match this package.");
+  }
+
+  const filePathnames = pkg.assets
+    .map((asset) => asset.pathname)
+    .filter((pathname): pathname is string => Boolean(pathname));
+  const acceptancePathnames = await listPathnames(`${ACCEPTANCE_LOG_PREFIX}/${input.packageId}/`);
+  const derivativeLogPathnames = await listPathnames(
+    `${DERIVATIVE_ERROR_LOG_PREFIX}/${input.packageId}/`,
+  );
+
+  const pathnames = [
+    buildRecordPath(input.packageId),
+    ...filePathnames,
+    ...acceptancePathnames,
+    ...derivativeLogPathnames,
+  ];
+
+  if (pathnames.length > 0) {
+    await del(pathnames);
+  }
 }
 
 export function isBlobConfigured() {
