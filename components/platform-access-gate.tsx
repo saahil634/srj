@@ -79,6 +79,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
   const [invitationCode, setInvitationCode] = useState("");
   const [lookupMode, setLookupMode] = useState<KeyLookupMode>("secure-key");
+  const [showInvitationLookup, setShowInvitationLookup] = useState(false);
   const [invitationError, setInvitationError] = useState<string | null>(null);
   const [isCheckingInvitation, setIsCheckingInvitation] = useState(false);
   const [invitationRecord, setInvitationRecord] = useState<PlatformAccessRecord | null>(null);
@@ -102,6 +103,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     setInvitationRecord(null);
     setInvitationPackages([]);
     setInvitationCode("");
+    setShowInvitationLookup(false);
     setInvitationError(null);
     setOwnerActionError(null);
     setStage(1);
@@ -384,6 +386,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     }
 
     setIsCheckingInvitation(true);
+    setShowInvitationLookup(true);
 
     try {
       const response = await fetch("/api/platform-access-keys/lookup", {
@@ -784,78 +787,107 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                 ) : null}
               </div>
 
-              <div className="mt-6 shrink-0 rounded-[1.35rem] border border-slate-200 bg-mist p-3.5">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
-                  {demoCopy.platformAccess.header.invitationTitle}
-                </p>
-                <div className="mt-2.5 grid grid-cols-2 gap-2.5">
-                  {(["secure-key", "access-key"] as const).map((mode) => {
-                    const selected = lookupMode === mode;
-                    const label =
-                      mode === "secure-key"
-                        ? demoCopy.platformAccess.header.invitationTypeSecure
-                        : demoCopy.platformAccess.header.invitationTypeAccess;
-
-                    return (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => {
-                          setLookupMode(mode);
-                          setInvitationError(null);
-                          setInvitationRecord(null);
-                          setInvitationPackages([]);
-                          setOwnerActionError(null);
-                        }}
-                        className={`rounded-[1rem] border px-3 py-2.5 text-sm font-semibold transition ${
-                          selected
-                            ? "border-signal bg-white text-signal shadow-sm"
-                            : "border-slate-200 bg-white/70 text-slate hover:border-slate-300"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-2.5 flex flex-col gap-2.5 md:flex-row md:items-end">
-                  <label className="block flex-1 space-y-2">
-                    <span className="text-sm font-medium text-ink">
-                      {demoCopy.platformAccess.header.invitationLabel}
-                    </span>
-                    <input
-                      value={invitationCode}
-                      onChange={(event) => {
-                        setInvitationCode(event.target.value);
+              {showInvitationLookup || invitationRecord || invitationError ? (
+                <div className="mt-6 shrink-0 rounded-[1.35rem] border border-slate-200 bg-mist p-3.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-signal">
+                      {demoCopy.platformAccess.header.invitationTitle}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowInvitationLookup(false);
                         setInvitationError(null);
+                        setInvitationRecord(null);
+                        setInvitationPackages([]);
+                        setOwnerActionError(null);
+                        setInvitationCode("");
                       }}
-                      className="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-signal"
-                      placeholder={
-                        lookupMode === "secure-key"
-                          ? demoCopy.platformAccess.header.secureKeyPlaceholder
-                          : demoCopy.platformAccess.header.accessKeyPlaceholder
-                      }
-                    />
-                  </label>
+                      className="rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate transition hover:border-slate-300 hover:text-ink"
+                    >
+                      Hide
+                    </button>
+                  </div>
+                  <div className="mt-2.5 grid grid-cols-2 gap-2.5">
+                    {(["secure-key", "access-key"] as const).map((mode) => {
+                      const selected = lookupMode === mode;
+                      const label =
+                        mode === "secure-key"
+                          ? demoCopy.platformAccess.header.invitationTypeSecure
+                          : demoCopy.platformAccess.header.invitationTypeAccess;
+
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => {
+                            setLookupMode(mode);
+                            setInvitationError(null);
+                            setInvitationRecord(null);
+                            setInvitationPackages([]);
+                            setOwnerActionError(null);
+                          }}
+                          className={`rounded-[1rem] border px-3 py-2.5 text-sm font-semibold transition ${
+                            selected
+                              ? "border-signal bg-white text-signal shadow-sm"
+                              : "border-slate-200 bg-white/70 text-slate hover:border-slate-300"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-2.5 flex flex-col gap-2.5 md:flex-row md:items-end">
+                    <label className="block flex-1 space-y-2">
+                      <span className="text-sm font-medium text-ink">
+                        {demoCopy.platformAccess.header.invitationLabel}
+                      </span>
+                      <input
+                        value={invitationCode}
+                        onChange={(event) => {
+                          setInvitationCode(event.target.value);
+                          setInvitationError(null);
+                        }}
+                        className="w-full rounded-2xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-signal"
+                        placeholder={
+                          lookupMode === "secure-key"
+                            ? demoCopy.platformAccess.header.secureKeyPlaceholder
+                            : demoCopy.platformAccess.header.accessKeyPlaceholder
+                        }
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleInvitationLookup}
+                      disabled={isCheckingInvitation}
+                      className="rounded-full border border-slate-300 px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                    >
+                      {isCheckingInvitation
+                        ? demoCopy.platformAccess.header.invitationLoadingButton
+                        : lookupMode === "secure-key"
+                          ? demoCopy.platformAccess.header.secureKeyButton
+                          : demoCopy.platformAccess.header.accessKeyButton}
+                    </button>
+                  </div>
+                  {invitationError ? (
+                    <div className="mt-2.5 rounded-[1.15rem] border border-red-200 bg-red-50 p-2.5 text-sm leading-6 text-red-700">
+                      {invitationError}
+                    </div>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="mt-6 shrink-0">
                   <button
                     type="button"
-                    onClick={handleInvitationLookup}
-                    disabled={isCheckingInvitation}
-                    className="rounded-full border border-slate-300 px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                    onClick={() => setShowInvitationLookup(true)}
+                    className="group inline-flex items-center gap-3 rounded-full border border-slate-200 bg-mist px-4 py-3 text-sm font-semibold text-ink transition hover:-translate-y-0.5 hover:border-signal hover:text-signal"
                   >
-                    {isCheckingInvitation
-                      ? demoCopy.platformAccess.header.invitationLoadingButton
-                      : lookupMode === "secure-key"
-                        ? demoCopy.platformAccess.header.secureKeyButton
-                        : demoCopy.platformAccess.header.accessKeyButton}
+                    <span>{demoCopy.platformAccess.header.invitationTitle}</span>
+                    <span className="text-base transition group-hover:translate-x-0.5">+</span>
                   </button>
                 </div>
-                {invitationError ? (
-                  <div className="mt-2.5 rounded-[1.15rem] border border-red-200 bg-red-50 p-2.5 text-sm leading-6 text-red-700">
-                    {invitationError}
-                  </div>
-                ) : null}
-              </div>
+              )}
 
               {invitationRecord ? (
                 <div className="mt-5 space-y-5 rounded-[1.6rem] border border-slate-200 bg-white p-4.5">
