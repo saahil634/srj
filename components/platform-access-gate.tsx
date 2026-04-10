@@ -299,21 +299,24 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-white/70">
                 {demoCopy.platformAccess.header.termsEyebrow}
               </p>
-              <ul className="mt-4 space-y-3 text-sm leading-7 text-mist">
+              <p className="mt-3 text-sm font-semibold tracking-[0.08em] text-white/85">
+                {demoCopy.platformAccess.header.lastUpdatedLabel}
+              </p>
+              <div className="mt-4 space-y-4 text-sm leading-7 text-mist">
                 {PLATFORM_ACCESS_TERMS.map((term) => (
-                  <li key={term}>{term}</li>
+                  <p key={term}>{term}</p>
                 ))}
-              </ul>
+              </div>
             </div>
 
-            <label className="mt-6 flex items-start gap-3 rounded-[1.5rem] border border-white/15 bg-white/5 p-4 text-sm leading-6 text-mist">
+            <label className="mt-6 flex items-start gap-4 rounded-[1.5rem] border-2 border-amber-300/80 bg-amber-300/10 p-5 text-base leading-7 text-white shadow-[0_0_0_1px_rgba(253,224,71,0.15)]">
               <input
                 type="checkbox"
                 checked={acceptedTerms}
                 onChange={(event) => setAcceptedTerms(event.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-white/30 bg-transparent text-signal focus:ring-signal"
+                className="mt-1 h-6 w-6 rounded border-2 border-amber-200 bg-transparent text-amber-300 focus:ring-amber-300"
               />
-              <span>{demoCopy.platformAccess.header.acceptLabel}</span>
+              <span className="font-medium">{demoCopy.platformAccess.header.acceptLabel}</span>
             </label>
           </div>
 
