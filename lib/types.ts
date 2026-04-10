@@ -5,6 +5,11 @@ export interface SRJKeyReference {
   relationExpression: string;
   targetValue: number | null;
   accessKey?: string | null;
+  sessionScoped: boolean;
+}
+
+export interface SRJRootKeyReference {
+  keyId: string;
   accessKeyFileId?: string | null;
   sessionScoped: boolean;
 }
@@ -24,6 +29,7 @@ export interface SRJPackageManifest {
   createdAt: string;
   files: SRJManifestFile[];
   srjKeyReference: SRJKeyReference;
+  ownerRootKeyReference?: SRJRootKeyReference;
   allowedUses: string;
   termsVersion: string;
   noticeText: string;
@@ -51,6 +57,7 @@ export interface AcceptancePayload {
   fullName: string;
   email: string;
   accepted: boolean;
+  accessorRootKey?: string;
 }
 
 export interface PersistedAcceptanceLog extends AcceptancePayload {

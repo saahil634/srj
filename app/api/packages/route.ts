@@ -6,13 +6,14 @@ import {
   createStoredPackage,
   deleteStoredPackage,
   isBlobConfigured,
+  listStoredPackagesByOwnerRootKey,
   listStoredPackages,
 } from "@/lib/blob-storage";
 import { isAllowedUploadFile } from "@/lib/upload-rules";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!isBlobConfigured()) {
     return NextResponse.json(
       {
@@ -24,7 +25,17 @@ export async function GET() {
   }
 
   try {
-    const packages = await listStoredPackages();
+    const { searchParams } = new URL(request.url);
+    const mode = searchParams.get("mode")?.trim() ?? "";
+    const rootKey = searchParams.get("rootKey")?.trim() ?? "";
+    const rootKeyFileId = searchParams.get("rootKeyFileId")?.trim() ?? "";
+    const packages =
+      mode === "owner"
+        ? await listStoredPackagesByOwnerRootKey({
+            rootKey,
+            rootKeyFileId: rootKeyFileId || null,
+          })
+        : await listStoredPackages();
 
     return NextResponse.json({ packages });
   } catch (error) {
@@ -50,8 +61,8 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const title = String(formData.get("title") ?? "").trim();
     const termsPreset = String(formData.get("termsPreset") ?? "").trim();
-    const srjRelation = String(formData.get("srjRelation") ?? "").trim();
-    const accessKeyId = String(formData.get("accessKeyId") ?? "").trim() || null;
+    const packageAccessKey = String(formData.get("packageAccessKey") ?? "").trim();
+    const ownerRootKeyFileId = String(formData.get("ownerRootKeyFileId") ?? "").trim() || null;
     const files = formData
       .getAll("files")
       .filter((value): value is File => value instanceof File && value.size > 0);
@@ -83,9 +94,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!srjRelation) {
+    if (!packageAccessKey) {
       return NextResponse.json(
-        { error: "An SRJ relation reference is required." },
+        { error: "An SRJ access key is required." },
         { status: 400 },
       );
     }
@@ -93,8 +104,8 @@ export async function POST(request: Request) {
     const storedPackage = await createStoredPackage({
       title,
       termsPreset,
-      srjRelation,
-      accessKeyId,
+      packageAccessKey,
+      ownerRootKeyFileId,
       files,
     });
 
@@ -120,20 +131,22 @@ export async function DELETE(request: Request) {
   try {
     const payload = (await request.json()) as {
       packageId?: string;
-      accessKey?: string;
+      rootKey?: string;
+      rootKeyFileId?: string;
     };
     const packageId = String(payload.packageId ?? "").trim();
-    const accessKey = String(payload.accessKey ?? "").trim();
+    const rootKey = String(payload.rootKey ?? "").trim();
+    const rootKeyFileId = String(payload.rootKeyFileId ?? "").trim() || null;
 
     if (!packageId) {
       return NextResponse.json({ error: "Package ID is required." }, { status: 400 });
     }
 
-    if (!accessKey) {
-      return NextResponse.json({ error: "SRJ access key is required." }, { status: 400 });
+    if (!rootKey) {
+      return NextResponse.json({ error: "SRJ root key is required." }, { status: 400 });
     }
 
-    await deleteStoredPackage({ packageId, accessKey });
+    await deleteStoredPackage({ packageId, rootKey, rootKeyFileId });
 
     return NextResponse.json({ packageId });
   } catch (error) {
@@ -146,7 +159,7 @@ export async function DELETE(request: Request) {
       {
         error: message,
       },
-      { status: message.includes("does not match") ? 403 : 500 },
+      { status: message.includes("root key") || message.includes("does not match") ? 403 : 500 },
     );
   }
 }

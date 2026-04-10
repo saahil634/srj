@@ -29,6 +29,8 @@ export interface PlatformAccessRecord {
   unlockedAt: string;
   accessKey: string;
   accessKeyId?: string | null;
+  ownerName?: string | null;
+  ownerEmail?: string | null;
 }
 
 function randomInt(min: number, max: number) {

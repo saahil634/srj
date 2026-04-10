@@ -23,8 +23,8 @@ export const BLOB_CONFIG_ERROR =
 interface CreateStoredPackageInput {
   title: string;
   termsPreset: string;
-  srjRelation: string;
-  accessKeyId?: string | null;
+  packageAccessKey: string;
+  ownerRootKeyFileId?: string | null;
   files: File[];
 }
 
@@ -52,6 +52,16 @@ function buildDerivativeErrorLogPath(packageId: string, loggedAt: string, fileId
 
 function buildAccessKeyFilePath(accessKeyId: string) {
   return `${ACCESS_KEY_FILE_PREFIX}/${accessKeyId}.txt`;
+}
+
+export interface StoredRootKeyRecord {
+  accessKeyId: string;
+  accessKey: string;
+  createdAt: string;
+  geoSummary: string | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
+  accessEventsText: string;
 }
 
 export function buildPreviewUrl(packageId: string, pathname: string) {
@@ -108,8 +118,11 @@ export async function getPrivateBlob(pathname: string) {
 }
 
 function hydrateStoredPackage(pkg: StoredDemoPackage) {
+  const { ownerRootKeyReference: _ownerRootKeyReference, ...publicManifest } = pkg.manifest;
+
   return {
     ...pkg,
+    manifest: publicManifest,
     assets: pkg.assets.map((asset) => ({
       ...asset,
       previewUrl:
@@ -120,20 +133,56 @@ function hydrateStoredPackage(pkg: StoredDemoPackage) {
   } satisfies StoredDemoPackage;
 }
 
+async function readStoredPackageRecord(packageId: string) {
+  return readBlobJson<StoredDemoPackage>(buildRecordPath(packageId));
+}
+
+async function countStoredPackagesByOwnerRootKeyFileId(ownerRootKeyFileId: string) {
+  const { blobs } = await list({
+    prefix: `${PACKAGE_RECORD_PREFIX}/`,
+  });
+  let count = 0;
+
+  for (const blob of blobs) {
+    try {
+      const record = await readBlobJson<StoredDemoPackage>(blob.pathname);
+
+      if (record.manifest.ownerRootKeyReference?.accessKeyFileId === ownerRootKeyFileId) {
+        count += 1;
+      }
+    } catch {
+      // Skip malformed package records.
+    }
+  }
+
+  return count;
+}
+
 export async function createStoredPackage({
   title,
   termsPreset,
-  srjRelation,
-  accessKeyId,
+  packageAccessKey,
+  ownerRootKeyFileId,
   files,
 }: CreateStoredPackageInput) {
   ensureBlobConfigured();
 
+  if (!ownerRootKeyFileId) {
+    throw new Error("An SRJ-root-key must be linked before packages can be created.");
+  }
+
+  const existingPackageCount = await countStoredPackagesByOwnerRootKeyFileId(ownerRootKeyFileId);
+
+  if (existingPackageCount >= 3) {
+    throw new Error("Only 3 SRJ packages can be created per SRJ-root-key at this time.");
+  }
+
   const packageId = generateId("srj");
   const createdAt = new Date().toISOString();
-  const srjTargetValue = evaluateArithmeticExpression(srjRelation);
+  const srjTargetValue = evaluateArithmeticExpression(packageAccessKey);
 
-  const srjKeyId = generateId("srjk");
+  const srjKeyId = generateId("srjak");
+  const ownerRootKeyId = generateId("srjrk");
 
   const assets: DemoFileAsset[] = [];
 
@@ -165,10 +214,14 @@ export async function createStoredPackage({
     files: assets.map(({ previewUrl: _previewUrl, pathname: _pathname, ...file }) => file),
     srjKeyReference: {
       keyId: srjKeyId,
-      relationExpression: srjRelation,
+      relationExpression: packageAccessKey,
       targetValue: srjTargetValue,
-      accessKey: srjRelation,
-      accessKeyFileId: accessKeyId ?? null,
+      accessKey: packageAccessKey,
+      sessionScoped: false,
+    },
+    ownerRootKeyReference: {
+      keyId: ownerRootKeyId,
+      accessKeyFileId: ownerRootKeyFileId ?? null,
       sessionScoped: true,
     },
     allowedUses: termsPreset || TERMS_PRESET,
@@ -209,9 +262,9 @@ export async function listStoredPackages() {
 export async function getStoredPackage(packageId: string) {
   ensureBlobConfigured();
 
-  const record = await readBlobJson<StoredDemoPackage>(buildRecordPath(packageId));
+  const record = await readStoredPackageRecord(packageId);
 
-  return hydrateStoredPackage(record);
+  return record;
 }
 
 export async function recordAcceptanceLog(input: AcceptancePayload) {
@@ -252,25 +305,60 @@ export async function recordDerivativeErrorLog(input: {
   return log;
 }
 
-export async function createStoredAccessKeyFile(input: { accessKey: string }) {
-  ensureBlobConfigured();
-
-  const accessKeyId = generateId("srjak");
-  const createdAt = new Date().toISOString();
-  const text = [
-    "SRJ ACCESS KEY",
-    `Created At: ${createdAt}`,
+function buildAccessKeyFileText(input: {
+  accessKeyId: string;
+  accessKey: string;
+  createdAt: string;
+  geoSummary?: string | null;
+  ownerName?: string | null;
+  ownerEmail?: string | null;
+  accessEventsText?: string;
+}) {
+  return [
+    "SRJ ROOT KEY",
+    `Root Key File ID: ${input.accessKeyId}`,
+    `Created At: ${input.createdAt}`,
+    `Geolocation: ${input.geoSummary || "Unavailable"}`,
+    `Owner Name: ${input.ownerName || "Unlinked"}`,
+    `Owner Email: ${input.ownerEmail || "Unlinked"}`,
     "",
+    "ROOT KEY",
     input.accessKey,
     "",
+    "ACCESS EVENTS",
+    input.accessEventsText?.trim() ? input.accessEventsText.trim() : "",
   ].join("\n");
+}
 
-  await put(buildAccessKeyFilePath(accessKeyId), text, {
+async function writeTextBlob(pathname: string, value: string) {
+  await put(pathname, value, {
     access: "private",
     addRandomSuffix: false,
     allowOverwrite: true,
     contentType: "text/plain; charset=utf-8",
   });
+}
+
+export async function createStoredAccessKeyFile(input: {
+  accessKey: string;
+  geoSummary?: string | null;
+  ownerName?: string | null;
+  ownerEmail?: string | null;
+}) {
+  ensureBlobConfigured();
+
+  const accessKeyId = generateId("srjak");
+  const createdAt = new Date().toISOString();
+  const text = buildAccessKeyFileText({
+    accessKeyId,
+    accessKey: input.accessKey,
+    createdAt,
+    geoSummary: input.geoSummary ?? null,
+    ownerName: input.ownerName ?? null,
+    ownerEmail: input.ownerEmail ?? null,
+  });
+
+  await writeTextBlob(buildAccessKeyFilePath(accessKeyId), text);
 
   return {
     accessKeyId,
@@ -278,6 +366,70 @@ export async function createStoredAccessKeyFile(input: { accessKey: string }) {
     pathname: buildAccessKeyFilePath(accessKeyId),
     fileName: `${accessKeyId}.txt`,
   };
+}
+
+function parseStoredRootKeyRecordText(text: string): StoredRootKeyRecord {
+  const lines = text.replace(/\r\n/g, "\n").split("\n");
+  const rootKeyIndex = lines.findIndex((line) => line.trim() === "ROOT KEY");
+  const accessEventsIndex = lines.findIndex((line) => line.trim() === "ACCESS EVENTS");
+
+  if (rootKeyIndex === -1 || accessEventsIndex === -1 || rootKeyIndex + 1 >= lines.length) {
+    throw new Error("Stored SRJ root key record is malformed.");
+  }
+
+  const readValue = (label: string) => {
+    const line = lines.find((entry) => entry.startsWith(`${label}:`));
+    return line ? line.slice(label.length + 1).trim() : "";
+  };
+
+  const normalizeOptional = (value: string) => {
+    if (!value || value === "Unavailable" || value === "Unlinked") {
+      return null;
+    }
+
+    return value;
+  };
+
+  return {
+    accessKeyId: readValue("Root Key File ID"),
+    createdAt: readValue("Created At"),
+    geoSummary: normalizeOptional(readValue("Geolocation")),
+    ownerName: normalizeOptional(readValue("Owner Name")),
+    ownerEmail: normalizeOptional(readValue("Owner Email")),
+    accessKey: lines[rootKeyIndex + 1]?.trim() ?? "",
+    accessEventsText: lines.slice(accessEventsIndex + 1).join("\n").trim(),
+  };
+}
+
+export async function getStoredRootKeyRecord(accessKeyId: string) {
+  ensureBlobConfigured();
+
+  const text = await readBlobText(buildAccessKeyFilePath(accessKeyId));
+  return parseStoredRootKeyRecordText(text);
+}
+
+export async function updateStoredRootKeyProfile(input: {
+  accessKeyId: string;
+  ownerName?: string | null;
+  ownerEmail?: string | null;
+}) {
+  ensureBlobConfigured();
+
+  const pathname = buildAccessKeyFilePath(input.accessKeyId);
+  const currentRecord = await getStoredRootKeyRecord(input.accessKeyId);
+  const nextText = buildAccessKeyFileText({
+    accessKeyId: currentRecord.accessKeyId,
+    accessKey: currentRecord.accessKey,
+    createdAt: currentRecord.createdAt,
+    geoSummary: currentRecord.geoSummary,
+    ownerName: input.ownerName ?? currentRecord.ownerName,
+    ownerEmail: input.ownerEmail ?? currentRecord.ownerEmail,
+    accessEventsText: currentRecord.accessEventsText,
+  });
+
+  await writeTextBlob(pathname, nextText);
+
+  return getStoredRootKeyRecord(input.accessKeyId);
 }
 
 export async function getStoredAccessKeyFile(accessKeyId: string) {
@@ -293,20 +445,159 @@ export async function getStoredAccessKeyFile(accessKeyId: string) {
   };
 }
 
-export async function deleteStoredPackage(input: { packageId: string; accessKey: string }) {
+async function readStoredRootKeyValue(accessKeyFileId: string) {
+  const record = await getStoredRootKeyRecord(accessKeyFileId);
+  return record.accessKey;
+}
+
+async function verifyPackageOwnerRootKey(input: {
+  packageId: string;
+  rootKey: string;
+  rootKeyFileId?: string | null;
+}) {
+  const pkg = await getStoredPackage(input.packageId);
+  const ownerRootKeyReference = pkg.manifest.ownerRootKeyReference;
+
+  if (!ownerRootKeyReference?.accessKeyFileId) {
+    throw new Error("This package is not linked to an owner SRJ root key.");
+  }
+
+  if (
+    input.rootKeyFileId &&
+    ownerRootKeyReference.accessKeyFileId !== input.rootKeyFileId.trim()
+  ) {
+    throw new Error("The SRJ root key does not match this package owner.");
+  }
+
+  const storedRootKey = await readStoredRootKeyValue(ownerRootKeyReference.accessKeyFileId);
+
+  if (storedRootKey !== input.rootKey.trim()) {
+    throw new Error("The SRJ root key does not match this package owner.");
+  }
+
+  return {
+    pkg,
+    ownerRootKeyFileId: ownerRootKeyReference.accessKeyFileId,
+  };
+}
+
+export async function listStoredPackagesByOwnerRootKey(input: {
+  rootKey: string;
+  rootKeyFileId?: string | null;
+}) {
   ensureBlobConfigured();
 
-  const pkg = await getStoredPackage(input.packageId);
-  const normalizedAccessKey = input.accessKey.trim();
-  const validKeys = [
-    pkg.manifest.srjKeyReference.accessKey,
-    pkg.manifest.srjKeyReference.relationExpression,
-    pkg.manifest.srjKeyReference.keyId,
-  ].filter((value): value is string => Boolean(value));
+  const { blobs } = await list({
+    prefix: `${PACKAGE_RECORD_PREFIX}/`,
+  });
 
-  if (!validKeys.includes(normalizedAccessKey)) {
-    throw new Error("The SRJ access key does not match this package.");
+  const packages = await Promise.all(
+    blobs.map(async (blob) => readBlobJson<StoredDemoPackage>(blob.pathname)),
+  );
+
+  const matchingPackages = await Promise.all(
+    packages.map(async (pkg) => {
+      try {
+        const ownerRootKeyReference = pkg.manifest.ownerRootKeyReference;
+
+        if (!ownerRootKeyReference?.accessKeyFileId) {
+          return null;
+        }
+
+        if (
+          input.rootKeyFileId &&
+          ownerRootKeyReference.accessKeyFileId !== input.rootKeyFileId.trim()
+        ) {
+          return null;
+        }
+
+        const storedRootKey = await readStoredRootKeyValue(ownerRootKeyReference.accessKeyFileId);
+
+        return storedRootKey === input.rootKey.trim() ? hydrateStoredPackage(pkg) : null;
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  return matchingPackages
+    .filter((entry): entry is StoredDemoPackage => Boolean(entry))
+    .sort(
+      (left, right) =>
+        new Date(right.manifest.createdAt).getTime() - new Date(left.manifest.createdAt).getTime(),
+    );
+}
+
+export async function findStoredRootKeyRecordByValue(rootKey: string) {
+  ensureBlobConfigured();
+
+  const { blobs } = await list({
+    prefix: `${ACCESS_KEY_FILE_PREFIX}/`,
+  });
+
+  for (const blob of blobs) {
+    try {
+      const record = await getStoredRootKeyRecord(
+        blob.pathname.replace(`${ACCESS_KEY_FILE_PREFIX}/`, "").replace(/\.txt$/, ""),
+      );
+
+      if (record.accessKey === rootKey.trim()) {
+        return record;
+      }
+    } catch {
+      // Skip malformed records.
+    }
   }
+
+  return null;
+}
+
+export async function appendStoredAccessKeyAccessEvent(input: {
+  accessKeyId: string;
+  packageId: string;
+  fullName: string;
+  email: string;
+  acceptedAt: string;
+  accessorRootKey?: string;
+  geoSummary?: string | null;
+}) {
+  ensureBlobConfigured();
+
+  const currentRecord = await getStoredRootKeyRecord(input.accessKeyId);
+  const eventText = [
+    "---",
+    `Accepted At: ${input.acceptedAt}`,
+    `Package ID: ${input.packageId}`,
+    `Full Name: ${input.fullName}`,
+    `Email: ${input.email}`,
+    `Accessor Root Key: ${input.accessorRootKey || "Unavailable"}`,
+    `Geolocation: ${input.geoSummary || "Unavailable"}`,
+    "",
+  ].join("\n");
+
+  const nextText = buildAccessKeyFileText({
+    accessKeyId: currentRecord.accessKeyId,
+    accessKey: currentRecord.accessKey,
+    createdAt: currentRecord.createdAt,
+    geoSummary: currentRecord.geoSummary,
+    ownerName: currentRecord.ownerName,
+    ownerEmail: currentRecord.ownerEmail,
+    accessEventsText: currentRecord.accessEventsText
+      ? `${currentRecord.accessEventsText}\n${eventText}`
+      : eventText,
+  });
+
+  await writeTextBlob(buildAccessKeyFilePath(input.accessKeyId), nextText);
+}
+
+export async function deleteStoredPackage(input: {
+  packageId: string;
+  rootKey: string;
+  rootKeyFileId?: string | null;
+}) {
+  ensureBlobConfigured();
+
+  const { pkg } = await verifyPackageOwnerRootKey(input);
 
   const filePathnames = pkg.assets
     .map((asset) => asset.pathname)
@@ -326,6 +617,22 @@ export async function deleteStoredPackage(input: { packageId: string; accessKey:
   if (pathnames.length > 0) {
     await del(pathnames);
   }
+}
+
+export async function getStoredAccessRecordFileForOwner(input: {
+  packageId: string;
+  rootKey: string;
+  rootKeyFileId?: string | null;
+}) {
+  ensureBlobConfigured();
+
+  const { pkg, ownerRootKeyFileId } = await verifyPackageOwnerRootKey(input);
+  const storedFile = await getStoredAccessKeyFile(ownerRootKeyFileId);
+
+  return {
+    packageTitle: pkg.manifest.title,
+    ...storedFile,
+  };
 }
 
 export function isBlobConfigured() {
