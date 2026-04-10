@@ -24,6 +24,7 @@ interface SRJStoreValue {
   activePackageId: string | null;
   isLoading: boolean;
   loadError: string | null;
+  reloadPackages: () => Promise<StoredDemoPackage[]>;
   createPackage: (input: PackageDraftInput) => Promise<StoredDemoPackage>;
   deletePackage: (packageId: string, accessKey: string) => Promise<void>;
   setActivePackageId: (packageId: string | null) => void;
@@ -39,55 +40,54 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  async function loadPackages() {
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      const response = await fetch("/api/packages", {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as {
+        packages?: StoredDemoPackage[];
+        error?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(payload.error || "Unable to load SRJ packages.");
+      }
+
+      const nextPackages = payload.packages ?? [];
+
+      setPackages(nextPackages);
+      setActivePackageId((current) => {
+        if (!current) {
+          return null;
+        }
+
+        return nextPackages.some((entry) => entry.manifest.packageId === current)
+          ? current
+          : null;
+      });
+
+      return nextPackages;
+    } catch (error) {
+      setPackages([]);
+      setLoadError(error instanceof Error ? error.message : "Unable to load SRJ packages.");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadPackages() {
-      setIsLoading(true);
-      setLoadError(null);
-
-      try {
-        const response = await fetch("/api/packages", {
-          cache: "no-store",
-        });
-        const payload = (await response.json()) as {
-          packages?: StoredDemoPackage[];
-          error?: string;
-        };
-
-        if (!response.ok) {
-          throw new Error(payload.error || "Unable to load SRJ packages.");
-        }
-
-        if (!isMounted) {
-          return;
-        }
-
-        setPackages(payload.packages ?? []);
-        setActivePackageId((current) => {
-          if (!current) {
-            return null;
-          }
-
-          return payload.packages?.some((entry) => entry.manifest.packageId === current)
-            ? current
-            : null;
-        });
-      } catch (error) {
-        if (!isMounted) {
-          return;
-        }
-
-        setPackages([]);
-        setLoadError(error instanceof Error ? error.message : "Unable to load SRJ packages.");
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+    void loadPackages().catch(() => {
+      if (!isMounted) {
+        return;
       }
-    }
-
-    void loadPackages();
+    });
 
     return () => {
       isMounted = false;
@@ -100,6 +100,7 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
       activePackageId,
       isLoading,
       loadError,
+      reloadPackages: loadPackages,
       createPackage: async ({ title, termsPreset, srjRelation, accessKeyId, files }) => {
         const formData = new FormData();
         formData.set("title", title);

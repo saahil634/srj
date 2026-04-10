@@ -10,11 +10,12 @@ import { useSRJStore } from "@/lib/srj-store";
 export function RetrievePackagesExperience() {
   const router = useRouter();
   const { accessRecord } = usePlatformAccessSession();
-  const { packages, setActivePackageId, loadError, isLoading } = useSRJStore();
+  const { packages, setActivePackageId, loadError, isLoading, reloadPackages } = useSRJStore();
   const [queryKey, setQueryKey] = useState(accessRecord?.accessKey ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [isRetrieving, setIsRetrieving] = useState(false);
 
-  function handleRetrieve() {
+  async function handleRetrieve() {
     setError(null);
 
     const normalizedKey = queryKey.trim();
@@ -24,25 +25,39 @@ export function RetrievePackagesExperience() {
       return;
     }
 
-    const matchingPackages = packages.filter((entry) => {
-      const reference = entry.manifest.srjKeyReference;
+    setIsRetrieving(true);
 
-      return (
-        reference.accessKey === normalizedKey ||
-        reference.relationExpression === normalizedKey ||
-        reference.keyId === normalizedKey
+    try {
+      // Refresh from Blob-backed storage so recently created packages are searchable
+      // even if they were not present when the app session first loaded.
+      const nextPackages = await reloadPackages();
+      const sourcePackages = nextPackages.length > 0 ? nextPackages : packages;
+      const nextPackage = sourcePackages.find((entry) => {
+        const reference = entry.manifest.srjKeyReference;
+
+        return (
+          reference.accessKey === normalizedKey ||
+          reference.relationExpression === normalizedKey ||
+          reference.keyId === normalizedKey
+        );
+      });
+
+      if (!nextPackage) {
+        setError(demoCopy.retrieveExperience.errors.incorrectKey);
+        return;
+      }
+
+      setActivePackageId(nextPackage.manifest.packageId);
+      router.push(`/open?packageId=${nextPackage.manifest.packageId}`);
+    } catch (nextError) {
+      setError(
+        nextError instanceof Error
+          ? nextError.message
+          : demoCopy.retrieveExperience.errors.incorrectKey,
       );
-    });
-
-    if (matchingPackages.length === 0) {
-      setError(demoCopy.retrieveExperience.errors.incorrectKey);
-      return;
+    } finally {
+      setIsRetrieving(false);
     }
-
-    const nextPackage = matchingPackages[0];
-
-    setActivePackageId(nextPackage.manifest.packageId);
-    router.push(`/open?packageId=${nextPackage.manifest.packageId}`);
   }
 
   return (
@@ -73,9 +88,10 @@ export function RetrievePackagesExperience() {
           <button
             type="button"
             onClick={handleRetrieve}
+            disabled={isRetrieving}
             className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
           >
-            {isLoading
+            {isRetrieving || isLoading
               ? demoCopy.retrieveExperience.lookup.retrievingButton
               : demoCopy.retrieveExperience.lookup.retrieveButton}
           </button>
