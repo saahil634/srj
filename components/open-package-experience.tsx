@@ -7,11 +7,13 @@ import { FilePreviewGrid } from "@/components/file-preview-grid";
 import { PackageMetadataCard } from "@/components/package-metadata-card";
 import { TermsAcceptanceModal } from "@/components/terms-acceptance-modal";
 import { demoCopy } from "@/lib/copy";
+import { usePlatformAccessSession } from "@/lib/platform-access-session";
 import { useSRJStore } from "@/lib/srj-store";
 import { SRJPackageManifest } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 export function OpenPackageExperience() {
+  const { accessRecord } = usePlatformAccessSession();
   const {
     packages,
     activePackageId,
@@ -245,6 +247,9 @@ export function OpenPackageExperience() {
 
       <TermsAcceptanceModal
         packageId={activePackage.manifest.packageId}
+        accessorRootKey={
+          accessRecord?.keyType === "access-key" ? null : (accessRecord?.accessKey ?? null)
+        }
         open={showModal}
         onClose={() => setShowModal(false)}
         onAccepted={(acceptance) =>

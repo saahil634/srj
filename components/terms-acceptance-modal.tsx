@@ -6,6 +6,7 @@ import { demoCopy } from "@/lib/copy";
 
 interface TermsAcceptanceModalProps {
   packageId: string;
+  accessorRootKey?: string | null;
   open: boolean;
   onClose: () => void;
   onAccepted: (acceptance: { fullName: string; email: string; acceptedAt: string }) => void;
@@ -13,6 +14,7 @@ interface TermsAcceptanceModalProps {
 
 export function TermsAcceptanceModal({
   packageId,
+  accessorRootKey,
   open,
   onClose,
   onAccepted,
@@ -43,6 +45,7 @@ export function TermsAcceptanceModal({
           fullName,
           email,
           accepted,
+          accessorRootKey,
         }),
       });
       const payload = (await response.json()) as { acceptedAt?: string; error?: string };

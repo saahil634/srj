@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { FileDropzone } from "@/components/file-dropzone";
 import { ManifestPreview } from "@/components/manifest-preview";
@@ -14,23 +14,17 @@ import { useSRJStore } from "@/lib/srj-store";
 export function CreatePackageForm() {
   const router = useRouter();
   const { accessRecord } = usePlatformAccessSession();
+  const currentSecureKey = accessRecord?.keyType === "access-key" ? null : accessRecord;
   const { createPackage, loadError } = useSRJStore();
   const [title, setTitle] = useState<string>(demoCopy.createForm.defaultTitle);
   const [termsPreset, setTermsPreset] = useState<string>(TERMS_PRESET);
-  const [srjRelation, setSrjRelation] = useState<string>(demoCopy.createForm.defaultSrjRelation);
+  const [packageAccessKey, setPackageAccessKey] = useState<string>(
+    demoCopy.createForm.defaultPackageAccessKey,
+  );
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (
-      accessRecord?.accessKey &&
-      (!srjRelation.trim() || srjRelation === demoCopy.createForm.defaultSrjRelation)
-    ) {
-      setSrjRelation(accessRecord.accessKey);
-    }
-  }, [accessRecord, srjRelation]);
 
   async function handleCreate() {
     setError(null);
@@ -50,7 +44,7 @@ export function CreatePackageForm() {
       return;
     }
 
-    if (!srjRelation.trim()) {
+    if (!packageAccessKey.trim()) {
       setError(demoCopy.createForm.errors.invalidRelation);
       return;
     }
@@ -61,11 +55,8 @@ export function CreatePackageForm() {
       const nextPackage = await createPackage({
         title,
         termsPreset,
-        srjRelation,
-        accessKeyId:
-          accessRecord?.accessKey === srjRelation.trim()
-            ? accessRecord.accessKeyId ?? null
-            : null,
+        packageAccessKey,
+        ownerSecureKeyFileId: currentSecureKey?.accessKeyId ?? null,
         files,
       });
 
@@ -124,16 +115,30 @@ export function CreatePackageForm() {
 
           <label className="block space-y-2">
             <span className="text-sm font-medium text-ink">
-              {demoCopy.createForm.fields.srjRelationLabel}
+              {demoCopy.createForm.fields.rootKeyLabel}
             </span>
             <input
-              value={srjRelation}
-              onChange={(event) => setSrjRelation(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
-              placeholder={demoCopy.createForm.fields.srjRelationPlaceholder}
+              value={currentSecureKey?.accessKey ?? demoCopy.createForm.fields.rootKeyFallback}
+              readOnly
+              className="w-full rounded-2xl border border-slate-200 bg-mist px-4 py-3 text-slate outline-none"
             />
             <p className="text-sm leading-6 text-slate">
-              {demoCopy.createForm.fields.srjRelationHelp}
+              {demoCopy.createForm.fields.rootKeyHelp}
+            </p>
+          </label>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-ink">
+              {demoCopy.createForm.fields.packageAccessKeyLabel}
+            </span>
+            <input
+              value={packageAccessKey}
+              onChange={(event) => setPackageAccessKey(event.target.value)}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
+              placeholder={demoCopy.createForm.fields.packageAccessKeyPlaceholder}
+            />
+            <p className="text-sm leading-6 text-slate">
+              {demoCopy.createForm.fields.packageAccessKeyHelp}
             </p>
           </label>
 

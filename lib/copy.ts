@@ -89,7 +89,7 @@ export const demoCopy = {
       eyebrow: "Retrive SRJ Packages",
       title: "Retrive stored SRJ packages by SRJ-access-key",
       description:
-        "Use the SRJ-access-key to find matching package records without exposing the full package list by default.",
+        "Use the package SRJ-access-key to open a shared package, or use your secure SRJ-secure-key to manage packages you created.",
     },
   },
 
@@ -102,14 +102,18 @@ export const demoCopy = {
       packageTitleLabel: "Package title",
       packageTitlePlaceholder: "Enter a package name",
       termsPresetLabel: "Terms and conditions of use",
-      srjRelationLabel: "Uploader SRJ relation reference",
-      srjRelationPlaceholder: "Enter your unique SRJ-access-key",
-      srjRelationHelp:
-        "This unique relation becomes the package's SRJ-acces-key reference in the file manifest of every file in the compressed package.",
+      rootKeyLabel: "Session SRJ-secure-key",
+      rootKeyFallback: "Unlock the platform to generate an SRJ-secure-key",
+      rootKeyHelp:
+        "This session-generated secure-key remains private and is used to log downstream package access for the package owner.",
+      packageAccessKeyLabel: "Package SRJ-access-key",
+      packageAccessKeyPlaceholder: "Enter a shareable SRJ-access-key for this package",
+      packageAccessKeyHelp:
+        "This separate SRJ-access-key is attached to the package manifest and shared with recipients for retrieval and access.",
     },
     defaultTitle: "Name of the Dataset",
     defaultTermsPreset: "Public research, education, and non-commercial use only.",
-    defaultSrjRelation: "14 | yes | 5+4",
+    defaultPackageAccessKey: "A2",
     submitIdle: "Generate SRJ package",
     submitLoading: "Uploading to SRJ demo website...",
     uploadSummaryPrefix:
@@ -121,7 +125,7 @@ export const demoCopy = {
     successLink: "Continue to Open SRJ →",
     errors: {
       totalUploadLimit: "Total upload size must stay within 10 MB.",
-      invalidRelation: "Enter the SRJ-access-key generated for this session, or another non-empty SRJ reference.",
+      invalidRelation: "Enter a non-empty package SRJ-access-key.",
       unableToCreate: "Unable to create the SRJ package.",
     },
   },
@@ -212,12 +216,12 @@ export const demoCopy = {
   // Retrieve flow
   retrieveExperience: {
     lookup: {
-      eyebrow: "Package retrieval",
-      title: "Find packages by SRJ-access-key",
+      eyebrow: "Package access",
+      title: "Open a shared SRJ package",
       body:
-        "Enter the SRJ-access-key to retrieve matching package records. Packages remain hidden until a matching key is provided.",
+        "Enter the package SRJ-access-key to retrieve matching package records. Packages remain hidden until a matching key is provided.",
       keyLabel: "SRJ-access-key",
-      keyPlaceholder: "Enter the SRJ-access-key used to create the package",
+      keyPlaceholder: "Enter the package SRJ-access-key shared with you",
       retrieveButton: "Retrive matching packages",
       retrievingButton: "Retriving packages...",
       emptyResults: "No SRJ packages matched that SRJ-access-key.",
@@ -237,6 +241,20 @@ export const demoCopy = {
       incorrectKey: "The SRJ-access-key is incorrect.",
       deleteFallback: "Unable to delete the SRJ package.",
     },
+    ownerFlow: {
+      eyebrow: "Secure-key access",
+      title: "Manage packages created with your SRJ-secure-key",
+      body:
+        "Use your current session SRJ-secure-key to load packages you created. Only this owner flow exposes delete controls and access-record downloads.",
+      rootKeyLabel: "Current SRJ-secure-key",
+      rootKeyFallback: "Unlock the platform to generate an SRJ-secure-key",
+      loadButton: "Load my packages",
+      loadingButton: "Loading my packages...",
+      openButton: "Open package",
+      deleteButton: "Delete package",
+      downloadRecordsButton: "Download access-records",
+      emptyState: "No packages are linked to your current SRJ-secure-key.",
+    },
   },
 
   // Metadata card in open flow
@@ -249,15 +267,15 @@ export const demoCopy = {
       totalPackageSize: "Total package size",
       allowedUses: "Allowed uses",
       noticeText: "Notice text",
-      srjKeyReference: "SRJ key reference",
-      keyId: "Key ID",
-      relation: "Relation",
+      srjKeyReference: "Package SRJ-access-key",
+      keyId: "Access key ID",
+      relation: "Access key",
       targetValue: "Target value",
     },
-    targetValueFallback: "Session-derived key",
+    targetValueFallback: "Non-arithmetic access key",
     assetCountSuffix: "assets",
     srjKeyReferenceBodyPrefix:
-      "Every file in this SRJ package is associated to the uniquee SRJ-access-key",
+      "Every file in this SRJ package is associated to the package SRJ-access-key",
   },
 
   // File preview grid
@@ -302,29 +320,43 @@ export const demoCopy = {
   // Platform access screen
   platformAccess: {
     header: {
-      eyebrow: "Platform access authentication",
-      title: "Secure Relational Jump (.SRJ): Treating Data as a Relation",
+      eyebrow: "Access Terms and Conditions",
+      title: "Secure Relational Jump (.SRJ)",
+      subtitle: "Data as a Relation",
       description:
-        "Review the terms and conditions below, then complete three secure-key steps to access this session.",
+        "Review the terms and conditions below to access this session.",
       termsEyebrow: "Terms and conditions",
       lastUpdatedLabel: "Last Updated: April 10, 2026",
       acceptLabel:
-        "I accept the terms and understand the conditions for using this website.",
+        "I am 21 years old and above. I accept the terms and understand the conditions for using this website.",
       logoutButton: "Logout session",
+      invitationTitle: "Already have a previous key?",
+      invitationTypeSecure: "Secure-key",
+      invitationTypeAccess: "Access-key",
+      invitationScreenTitle: "Access a previous key",
+      invitationScreenBody:
+        "Use a secure-key or access-key to return to previously linked SRJ packages.",
+      invitationLabel: "Key value",
+      secureKeyPlaceholder: "Enter your SRJ-secure-key",
+      accessKeyPlaceholder: "Enter your SRJ-access-key",
+      secureKeyButton: "Access with secure-key",
+      accessKeyButton: "Access with access-key",
+      invitationLoadingButton: "Checking key...",
+      invitationBackButton: "Go back",
     },
     terms: [
       "This SRJ website is currently under development and is available to invited users only. To request an invitation, please email the site administrator at turamp@washington.edu.",
-      "Users may upload images, short-form audio/video, PDF files, and TXT documents. The maximum storage limit is 10 MB per session. Do not upload illegal, unauthorized, confidential, or copyright-protected material without permission. The site administrator has access to your uploaded data and the terms and conditions you attach to it.",
-      "Access to this website requires that you are a human capable of keeping custody of your secret key. Your SRJ-access-key, created using numbers, text, and arithmetic expressions, is required to create, access, or delete your data.",
+      "Users may upload images, short-form audio/video, PDF files, and TXT documents. The maximum storage limit is 10 MB per session. Do not upload illegal, unauthorized, confidential, or copyright-protected material without permission. The site administrator has access to your uploaded data as per the terms and conditions you declare.",
+      "Access to this website requires that you are a human capable of keeping custody of your secret key. Your SRJ-access-key, created using a mix of numbers, text, and arithmetic expressions, is required to create, access, or delete your data.",
       "This website is part of an Information Science research project titled \"Data Sovereignty in the Age of Gen-AI\" at the University of Washington, Seattle. The objectives of this project are to evaluate technical solutions that protect digital datasets from misuse, misrepresentation, and misappropriation. Your interactions with this website are recorded and contribute to a doctoral dissertation project. You can delete your data at any time using your SRJ-access-key or by emailing the site administrator.",
       "This research experience is intended for Indigenous and non-Native scholars who are interested in publishing their data through websites, applications, and AI tools while protecting them from unsupervised access, reuse, and sharing.",
       "You must be at least 21 years old to use this website. This platform is a temporary academic research demonstration. Research data will be archived and made available to participants who sign up and complete this study by June 15, 2027, subject to university requirements.",
       "This website is provided as is and for research purposes only. The site administrator and affiliated parties, including the University of Washington, are not liable for any loss, damage, injury, data exposure, or technical failure arising from your use of this website.",
-      "By agreeing below, you acknowledge that you agree to the terms and conditions.",
+      "By agreeing below, you acknowledge that you have read this document and agree to the terms and conditions.",
     ],
     stages: {
       stageOneTitle: "Secure-key 1",
-      stageOneHelper: "Solve the arithmetic expression to open the next verification step.",
+      stageOneHelper: "Solve this arithmetic expression to open the next verification step.",
       stageOnePlaceholder: "Enter the numeric result",
       stageTwoTitle: "Secure-key 2",
       stageTwoHelper:
@@ -339,8 +371,11 @@ export const demoCopy = {
       unlockedTitle: "Access unlocked",
       stepPrefix: "Step",
       stepJoiner: "of",
-      promptLabel: "Prompt",
-      responseLabel: "Secure-key response",
+      promptLabel: "Relation",
+      responseLabel: "SRJ-secure-key response",
+      responseHelp: "Enter an accurate numeric response.",
+      stageTwoResponseHelp: "Enter yes or no.",
+      stageThreeResponseHelp: "Enter an equivalent arithmetic response.",
       keySequenceLabel: "Current key sequence",
       keySequenceEmpty:
         "Your SRJ-key will be formed as you complete the three steps.",
@@ -351,11 +386,30 @@ export const demoCopy = {
       keyEyebrow: "Secure-relational-jump-access-key",
       keyBody:
         "Take note of this unique artihmetic combination. It is your SRJ-access-key for the current session.",
+      linkTitle: "Link this SRJ-secure-key to your identity",
+      linkBody:
+        "Optionally link your name and email before downloading or using this SRJ-secure-key. One email can be associated with multiple secure-keys over time.",
+      nameLabel: "Full name",
+      namePlaceholder: "Enter your full name",
+      emailLabel: "Email address",
+      emailPlaceholder: "name@example.org",
       statusEyebrow: "Session unlocked",
       statusBody:
         "Platform terms accepted and access authentication completed successfully.",
       downloadButton: "Download SRJ-access-key (.txt)",
       enterButton: "Enter SRJ Demo",
+    },
+    invitationResult: {
+      eyebrow: "Invitation access",
+      title: "Packages linked to this SRJ-secure-key",
+      ownerFallback: "Unlinked secure-key owner",
+      emailFallback: "No linked email yet",
+      noPackages: "No SRJ packages are currently linked to this secure-key.",
+      noAccessKeyPackages: "No SRJ packages are currently linked to this access-key.",
+      enterButton: "Enter SRJ Demo",
+      openButton: "Open package",
+      deleteButton: "Delete package",
+      downloadRecordsButton: "Download access-records",
     },
     errors: {
       acceptTerms: "You must accept the platform terms before continuing.",
@@ -367,6 +421,10 @@ export const demoCopy = {
       invalidExpression: "Enter a valid arithmetic expression using numbers and operators.",
       wrongEquivalentRelation:
         "That expression is not equivalent to the airthmetic equation provided. Try another relation.",
+      invitationCodeRequired: "Enter a key to continue.",
+      invitationCodeInvalid: "That secure-key could not be found.",
+      accessKeyInvalid: "That access-key could not be found.",
+      ownerActionFailed: "Unable to complete the requested owner action.",
     },
   },
 } as const;

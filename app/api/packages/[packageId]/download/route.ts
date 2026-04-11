@@ -42,6 +42,8 @@ export async function GET(
 
   try {
     const storedPackage = await getStoredPackage(packageId);
+    const { ownerRootKeyReference: _ownerRootKeyReference, ...publicManifest } =
+      storedPackage.manifest;
     const zip = new JSZip();
     const derivativeEntries: Array<Record<string, unknown>> = [];
     const derivativeErrors: Array<Record<string, unknown>> = [];
@@ -50,7 +52,7 @@ export async function GET(
       "manifest.json",
       JSON.stringify(
         {
-          ...storedPackage.manifest,
+          ...publicManifest,
           derivativePackage: {
             generatedAt: new Date().toISOString(),
             description:

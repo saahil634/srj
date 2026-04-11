@@ -9,18 +9,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#102033",
-        mist: "#edf3f9",
-        slate: "#49617a",
-        signal: "#0f6d67",
-        ember: "#d97706",
+        ink: "#231b17",
+        mist: "#efe4d6",
+        slate: "#6f5f50",
+        signal: "#6f7a44",
+        ember: "#b86d32",
       },
       boxShadow: {
-        panel: "0 20px 50px rgba(16, 32, 51, 0.12)",
+        panel: "0 20px 50px rgba(35, 27, 23, 0.14)",
       },
       backgroundImage: {
         "grid-fade":
-          "linear-gradient(to right, rgba(16, 32, 51, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(16, 32, 51, 0.05) 1px, transparent 1px)",
+          "linear-gradient(to right, rgba(35, 27, 23, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(35, 27, 23, 0.05) 1px, transparent 1px)",
       },
     },
   },

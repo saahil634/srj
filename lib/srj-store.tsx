@@ -14,8 +14,8 @@ import { AcceptanceRecord, SRJPackageManifest, StoredDemoPackage } from "@/lib/t
 interface PackageDraftInput {
   title: string;
   termsPreset: string;
-  srjRelation: string;
-  accessKeyId?: string | null;
+  packageAccessKey: string;
+  ownerSecureKeyFileId?: string | null;
   files: File[];
 }
 
@@ -26,7 +26,11 @@ interface SRJStoreValue {
   loadError: string | null;
   reloadPackages: () => Promise<StoredDemoPackage[]>;
   createPackage: (input: PackageDraftInput) => Promise<StoredDemoPackage>;
-  deletePackage: (packageId: string, accessKey: string) => Promise<void>;
+  deletePackage: (
+    packageId: string,
+    secureKey: string,
+    secureKeyFileId?: string | null,
+  ) => Promise<void>;
   setActivePackageId: (packageId: string | null) => void;
   importManifest: (manifest: SRJPackageManifest) => void;
   saveAcceptance: (packageId: string, acceptance: AcceptanceRecord) => void;
@@ -101,13 +105,19 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
       isLoading,
       loadError,
       reloadPackages: loadPackages,
-      createPackage: async ({ title, termsPreset, srjRelation, accessKeyId, files }) => {
+      createPackage: async ({
+        title,
+        termsPreset,
+        packageAccessKey,
+        ownerSecureKeyFileId,
+        files,
+      }) => {
         const formData = new FormData();
         formData.set("title", title);
         formData.set("termsPreset", termsPreset);
-        formData.set("srjRelation", srjRelation);
-        if (accessKeyId) {
-          formData.set("accessKeyId", accessKeyId);
+        formData.set("packageAccessKey", packageAccessKey);
+        if (ownerSecureKeyFileId) {
+          formData.set("ownerSecureKeyFileId", ownerSecureKeyFileId);
         }
 
         files.forEach((file) => {
@@ -137,7 +147,7 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
 
         return payload.package;
       },
-      deletePackage: async (packageId, accessKey) => {
+      deletePackage: async (packageId, secureKey, secureKeyFileId) => {
         const response = await fetch("/api/packages", {
           method: "DELETE",
           headers: {
@@ -145,7 +155,8 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
           },
           body: JSON.stringify({
             packageId,
-            accessKey,
+            secureKey,
+            secureKeyFileId,
           }),
         });
         const payload = (await response.json()) as {

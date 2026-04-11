@@ -1,9 +1,32 @@
 import { NextResponse } from "next/server";
 
-import { getAccessCookieName, isBlobConfigured, recordAcceptanceLog, BLOB_CONFIG_ERROR } from "@/lib/blob-storage";
+import {
+  appendStoredAccessKeyAccessEvent,
+  BLOB_CONFIG_ERROR,
+  getAccessCookieName,
+  getStoredPackage,
+  isBlobConfigured,
+  recordAcceptanceLog,
+} from "@/lib/blob-storage";
 import { AcceptancePayload } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+function getGeoSummary(request: Request) {
+  const city = request.headers.get("x-vercel-ip-city")?.trim();
+  const region = request.headers.get("x-vercel-ip-country-region")?.trim();
+  const country = request.headers.get("x-vercel-ip-country")?.trim();
+  const latitude = request.headers.get("x-vercel-ip-latitude")?.trim();
+  const longitude = request.headers.get("x-vercel-ip-longitude")?.trim();
+
+  const locationParts = [city, region, country].filter(Boolean);
+  const coordinateSummary =
+    latitude && longitude ? ` (${latitude}, ${longitude})` : "";
+
+  return locationParts.length > 0
+    ? `${locationParts.join(", ")}${coordinateSummary}`
+    : null;
+}
 
 export async function POST(request: Request) {
   const body = (await request.json()) as Partial<AcceptancePayload>;
@@ -20,12 +43,31 @@ export async function POST(request: Request) {
   }
 
   try {
+    const pkg = await getStoredPackage(body.packageId);
     const log = await recordAcceptanceLog({
       packageId: body.packageId,
       fullName: body.fullName,
       email: body.email,
       accepted: true,
+      accessorRootKey: body.accessorRootKey,
     });
+    const accessKeyFileId = pkg.manifest.ownerRootKeyReference?.accessKeyFileId;
+
+    if (accessKeyFileId) {
+      try {
+        await appendStoredAccessKeyAccessEvent({
+          accessKeyId: accessKeyFileId,
+          packageId: body.packageId,
+          fullName: body.fullName,
+          email: body.email,
+          acceptedAt: log.acceptedAt,
+          accessorRootKey: body.accessorRootKey,
+          geoSummary: getGeoSummary(request),
+        });
+      } catch {
+        // Acceptance should still succeed even if the optional text-file append fails.
+      }
+    }
 
     const response = NextResponse.json({
       packageId: body.packageId,
