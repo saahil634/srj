@@ -1,16 +1,16 @@
 # SRJ Demo
 
-Conference-ready Next.js prototype for creating and opening governed SRJ packages.
+Secure Relational Jump(.SRJ) prototype for creating and accessing SRJ packages.
 
-## Environment
+Ongoing Documentation (2026-20XX): https://srj.pubpub.org
 
-Create a `.env.local` file from `.env.example` and add:
+## Environment is Codex, Github and Vercel
 
-`BLOB_READ_WRITE_TOKEN`
+Create a `.env.local` file from `.env.example` and add:`BLOB_READ_WRITE_TOKEN`
 
 - Required for package creation, package listing, gated file previews, and persisted acceptance logs.
 - Create a Vercel Blob store for the project, copy the read/write token, and add it to your local and deployed environments.
-- This app is designed to work with a private Blob store so files stay inaccessible until the recipient accepts terms.
+- This app is designed to work with a private Blob store so files stay inaccessible until the recipient accepts terms and conditions.
 
 ## How Persistence Works
 
