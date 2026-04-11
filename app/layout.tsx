@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { Analytics } from "@vercel/analytics/next";
 import { NavBar } from "@/components/nav-bar";
 import { PlatformAccessGate } from "@/components/platform-access-gate";
 import { demoCopy } from "@/lib/copy";
@@ -28,6 +29,7 @@ export default function RootLayout({
             </div>
           </PlatformAccessGate>
         </SRJStoreProvider>
+        <Analytics />
       </body>
     </html>
   );
