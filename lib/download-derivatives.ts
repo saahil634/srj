@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 
 import ffmpegPath from "ffmpeg-static";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, PDFName } from "pdf-lib";
 import sharp from "sharp";
 
 import { DemoFileAsset, SRJPackageManifest } from "@/lib/types";
@@ -80,6 +80,23 @@ function buildEmbeddedManifestXmp(manifest: EmbeddedFileManifest) {
     "    </rdf:Description>",
     "  </rdf:RDF>",
     "</x:xmpmeta>",
+  ].join("\n");
+}
+
+function buildPdfManifestXmp(manifest: EmbeddedFileManifest) {
+  return [
+    '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>',
+    '<x:xmpmeta xmlns:x="adobe:ns:meta/">',
+    '  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">',
+    '    <rdf:Description rdf:about="" xmlns:srj="https://srj.pubpub.org/ns/1.0/">',
+    `      <srj:manifest>${escapeXml(JSON.stringify(manifest))}</srj:manifest>`,
+    `      <srj:packageId>${escapeXml(manifest.packageId)}</srj:packageId>`,
+    `      <srj:fileId>${escapeXml(manifest.fileId)}</srj:fileId>`,
+    `      <srj:srjKeyId>${escapeXml(manifest.srjKeyId)}</srj:srjKeyId>`,
+    "    </rdf:Description>",
+    "  </rdf:RDF>",
+    "</x:xmpmeta>",
+    '<?xpacket end="w"?>',
   ].join("\n");
 }
 
@@ -160,24 +177,20 @@ async function createPdfDerivative(
   embeddedManifest?: EmbeddedFileManifest,
 ): Promise<DerivativeResult> {
   const pdfDoc = await PDFDocument.load(buffer);
-  const embeddedManifestText = embeddedManifest
-    ? serializeEmbeddedManifest(embeddedManifest)
-    : null;
 
   pdfDoc.setTitle(`${manifest.title} - web derivative`);
-  pdfDoc.setSubject(
-    embeddedManifestText ||
-      `SRJ package ${manifest.packageId} | key ${manifest.srjKeyReference.keyId} | file ${asset.fileId}`,
-  );
-  pdfDoc.setKeywords([
-    manifest.packageId,
-    manifest.srjKeyReference.keyId,
-    manifest.srjKeyReference.relationExpression,
-    asset.fileId,
-    "srj-manifest",
-  ]);
   pdfDoc.setProducer("SRJ Demo derivative pipeline");
   pdfDoc.setCreator("SRJ Demo");
+
+  if (embeddedManifest) {
+    const metadataStream = pdfDoc.context.flateStream(buildPdfManifestXmp(embeddedManifest), {
+      Type: "Metadata",
+      Subtype: "XML",
+    });
+    const metadataRef = pdfDoc.context.register(metadataStream);
+
+    pdfDoc.catalog.set(PDFName.of("Metadata"), metadataRef);
+  }
 
   const output = await pdfDoc.save({
     useObjectStreams: true,
@@ -231,7 +244,7 @@ async function createVideoDerivative(
       "-pix_fmt",
       "yuv420p",
       "-movflags",
-      "+faststart",
+      "+faststart+use_metadata_tags",
       "-c:a",
       "aac",
       "-b:a",
@@ -239,9 +252,7 @@ async function createVideoDerivative(
       ...(manifestComment
         ? [
             "-metadata",
-            `comment=${manifestComment}`,
-            "-metadata",
-            `description=${manifestComment}`,
+            `srj_manifest=${manifestComment}`,
           ]
         : []),
       outputPath,
@@ -298,6 +309,10 @@ async function createAudioDerivative(
       "-y",
       "-i",
       inputPath,
+      "-write_id3v1",
+      "0",
+      "-id3v2_version",
+      "3",
       "-vn",
       "-c:a",
       "libmp3lame",
@@ -308,9 +323,7 @@ async function createAudioDerivative(
       ...(manifestComment
         ? [
             "-metadata",
-            `comment=${manifestComment}`,
-            "-metadata",
-            `description=${manifestComment}`,
+            `srj_manifest=${manifestComment}`,
           ]
         : []),
       outputPath,
