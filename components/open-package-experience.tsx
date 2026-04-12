@@ -163,7 +163,7 @@ export function OpenPackageExperience() {
             </p>
             <p className="mt-2 text-sm leading-6 text-slate">
               {isAccepted && activePackage.acceptance
-                ? `${demoCopy.openExperience.recipientStatus.acceptedByPrefix} ${activePackage.acceptance.fullName} ${demoCopy.openExperience.recipientStatus.acceptedOnJoiner} ${formatDateTime(activePackage.acceptance.acceptedAt)}.`
+                ? `${demoCopy.openExperience.recipientStatus.acceptedByPrefix} ${activePackage.acceptance.fullName}${activePackage.acceptance.organization ? ` (${activePackage.acceptance.organization})` : ""} ${demoCopy.openExperience.recipientStatus.acceptedOnJoiner} ${formatDateTime(activePackage.acceptance.acceptedAt)}.`
                 : demoCopy.openExperience.recipientStatus.lockedBody}
             </p>
           </div>
@@ -187,12 +187,6 @@ export function OpenPackageExperience() {
                 {demoCopy.openExperience.actions.downloadZip}
               </a>
             ) : null}
-            <Link
-              href={"/retrieve" as const}
-              className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal"
-            >
-              {demoCopy.app.nav.links.retrieve}
-            </Link>
           </div>
         </aside>
       </section>

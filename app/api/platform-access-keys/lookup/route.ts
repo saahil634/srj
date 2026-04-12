@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       });
 
       if (packages.length === 0) {
-        return NextResponse.json({ error: "Access-key not found." }, { status: 404 });
+        return NextResponse.json({ error: "SRJ-access key not found." }, { status: 404 });
       }
 
       return NextResponse.json({
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const rootKeyRecord = await findStoredRootKeyRecordByValue(keyValue);
 
     if (!rootKeyRecord) {
-      return NextResponse.json({ error: "Secure-key not found." }, { status: 404 });
+      return NextResponse.json({ error: "SRJ-root key not found." }, { status: 404 });
     }
 
     const packages = await listStoredPackagesByOwnerRootKey({
@@ -67,6 +67,7 @@ export async function POST(request: Request) {
         accessKey: rootKeyRecord.accessKey,
         createdAt: rootKeyRecord.createdAt,
         ownerName: rootKeyRecord.ownerName,
+        ownerOrganization: rootKeyRecord.ownerOrganization,
         ownerEmail: rootKeyRecord.ownerEmail,
       },
       packages,

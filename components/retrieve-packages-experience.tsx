@@ -98,7 +98,7 @@ export function RetrievePackagesExperience() {
       };
 
       if (!response.ok) {
-        throw new Error(payload.error || "Unable to load packages for this SRJ-secure-key.");
+        throw new Error(payload.error || "Unable to load packages for this SRJ-root key.");
       }
 
       setOwnerPackages(payload.packages ?? []);
@@ -106,7 +106,7 @@ export function RetrievePackagesExperience() {
       setOwnerError(
         nextError instanceof Error
           ? nextError.message
-          : "Unable to load packages for this SRJ-secure-key.",
+          : "Unable to load packages for this SRJ-root key.",
       );
     } finally {
       setIsLoadingOwnerPackages(false);
@@ -115,7 +115,7 @@ export function RetrievePackagesExperience() {
 
   async function handleDelete(pkg: StoredDemoPackage) {
     if (!currentSecureKey?.accessKey) {
-      setOwnerError("Unlock the platform to use your SRJ-secure-key.");
+      setOwnerError("Unlock the platform to use your SRJ-root key.");
       return;
     }
 
@@ -142,7 +142,7 @@ export function RetrievePackagesExperience() {
 
   async function handleDownloadAccessRecords(pkg: StoredDemoPackage) {
     if (!currentSecureKey?.accessKey) {
-      setOwnerError("Unlock the platform to use your SRJ-secure-key.");
+      setOwnerError("Unlock the platform to use your SRJ-root key.");
       return;
     }
 
@@ -190,8 +190,8 @@ export function RetrievePackagesExperience() {
   }
 
   return (
-    <div className="grid gap-8 xl:grid-cols-2">
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-panel">
+    <div className="grid items-stretch gap-8 xl:grid-cols-2">
+      <section className="flex h-full flex-col rounded-[2rem] border border-slate-200 bg-white p-6 shadow-panel">
         <p className="text-sm uppercase tracking-[0.22em] text-signal">
           {demoCopy.retrieveExperience.lookup.eyebrow}
         </p>
@@ -202,7 +202,7 @@ export function RetrievePackagesExperience() {
           {demoCopy.retrieveExperience.lookup.body}
         </p>
 
-        <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-end">
+        <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
           <label className="block flex-1 space-y-2">
             <span className="text-sm font-medium text-ink">
               {demoCopy.retrieveExperience.lookup.keyLabel}
@@ -218,7 +218,7 @@ export function RetrievePackagesExperience() {
             type="button"
             onClick={handleRetrieve}
             disabled={isRetrieving}
-            className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
+            className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal md:min-w-[11rem]"
           >
             {isRetrieving || isLoading
               ? demoCopy.retrieveExperience.lookup.retrievingButton
@@ -239,7 +239,7 @@ export function RetrievePackagesExperience() {
         ) : null}
       </section>
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-panel">
+      <section className="flex h-full flex-col rounded-[2rem] border border-slate-200 bg-white p-6 shadow-panel">
         <p className="text-sm uppercase tracking-[0.22em] text-signal">
           {demoCopy.retrieveExperience.ownerFlow.eyebrow}
         </p>
@@ -250,25 +250,27 @@ export function RetrievePackagesExperience() {
           {demoCopy.retrieveExperience.ownerFlow.body}
         </p>
 
-        <div className="mt-6 rounded-[1.5rem] border border-slate-200 bg-mist p-4">
-          <p className="text-sm font-medium text-ink">
-            {demoCopy.retrieveExperience.ownerFlow.rootKeyLabel}
-          </p>
-          <p className="mt-2 break-all text-sm leading-6 text-slate">
-            {currentSecureKey?.accessKey ?? demoCopy.retrieveExperience.ownerFlow.rootKeyFallback}
-          </p>
-        </div>
+        <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+          <div className="rounded-[1.5rem] border border-slate-200 bg-mist p-4">
+            <p className="text-sm font-medium text-ink">
+              {demoCopy.retrieveExperience.ownerFlow.rootKeyLabel}
+            </p>
+            <p className="mt-2 break-all text-sm leading-6 text-slate">
+              {currentSecureKey?.accessKey ?? demoCopy.retrieveExperience.ownerFlow.rootKeyFallback}
+            </p>
+          </div>
 
-        <button
-          type="button"
-          onClick={handleLoadOwnerPackages}
-          disabled={isLoadingOwnerPackages || !accessRecord?.accessKey}
-          className="mt-5 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          {isLoadingOwnerPackages
-            ? demoCopy.retrieveExperience.ownerFlow.loadingButton
-            : demoCopy.retrieveExperience.ownerFlow.loadButton}
-        </button>
+          <button
+            type="button"
+            onClick={handleLoadOwnerPackages}
+            disabled={isLoadingOwnerPackages || !accessRecord?.accessKey}
+            className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal disabled:cursor-not-allowed disabled:opacity-40 md:min-w-[11rem]"
+          >
+            {isLoadingOwnerPackages
+              ? demoCopy.retrieveExperience.ownerFlow.loadingButton
+              : demoCopy.retrieveExperience.ownerFlow.loadButton}
+          </button>
+        </div>
 
         {ownerError ? (
           <div className="mt-4 rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">

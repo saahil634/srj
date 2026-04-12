@@ -37,6 +37,8 @@ export default function HomePage() {
         eyebrow={demoCopy.home.hero.eyebrow}
         title={demoCopy.home.hero.title}
         description={demoCopy.home.hero.description}
+        contentClassName="max-w-5xl"
+        descriptionClassName="max-w-5xl text-[1.05rem]"
       />
 
       <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -62,7 +64,7 @@ export default function HomePage() {
           <p className="text-sm font-semibold uppercase tracking-[0.25em] text-white/60">
             {demoCopy.home.highlights.eyebrow}
           </p>
-          <ul className="mt-5 space-y-3 text-lg leading-8 text-mist">
+          <ul className="mt-5 list-disc space-y-4 pl-6 text-lg leading-8 text-mist marker:text-amber-300">
             {demoCopy.home.highlights.items.map((item) => (
               <li key={item}>{item}</li>
             ))}

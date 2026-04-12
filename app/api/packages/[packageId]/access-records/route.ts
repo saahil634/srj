@@ -29,7 +29,7 @@ export async function POST(
       String(payload.secureKeyFileId ?? payload.rootKeyFileId ?? "").trim() || null;
 
     if (!secureKey) {
-      return NextResponse.json({ error: "SRJ secure-key is required." }, { status: 400 });
+      return NextResponse.json({ error: "SRJ-root key is required." }, { status: 400 });
     }
 
     const storedFile = await getStoredAccessRecordFileForOwner({
@@ -55,7 +55,7 @@ export async function POST(
       {
         error: message,
       },
-      { status: message.includes("secure-key") || message.includes("root key") ? 403 : 500 },
+      { status: message.includes("SRJ-root key") || message.includes("root key") ? 403 : 500 },
     );
   }
 }

@@ -23,6 +23,7 @@ export const BLOB_CONFIG_ERROR =
 interface CreateStoredPackageInput {
   title: string;
   termsPreset: string;
+  noticeText: string;
   packageAccessKey: string;
   ownerRootKeyFileId?: string | null;
   files: File[];
@@ -60,6 +61,7 @@ export interface StoredRootKeyRecord {
   createdAt: string;
   geoSummary: string | null;
   ownerName: string | null;
+  ownerOrganization: string | null;
   ownerEmail: string | null;
   accessEventsText: string;
 }
@@ -161,6 +163,7 @@ async function countStoredPackagesByOwnerRootKeyFileId(ownerRootKeyFileId: strin
 export async function createStoredPackage({
   title,
   termsPreset,
+  noticeText,
   packageAccessKey,
   ownerRootKeyFileId,
   files,
@@ -168,13 +171,13 @@ export async function createStoredPackage({
   ensureBlobConfigured();
 
   if (!ownerRootKeyFileId) {
-    throw new Error("An SRJ-secure-key must be linked before packages can be created.");
+    throw new Error("An SRJ-root key must be linked before packages can be created.");
   }
 
   const existingPackageCount = await countStoredPackagesByOwnerRootKeyFileId(ownerRootKeyFileId);
 
   if (existingPackageCount >= 3) {
-    throw new Error("Only 3 SRJ packages can be created per SRJ-secure-key at this time.");
+    throw new Error("Only 3 SRJ packages can be created per SRJ-root key at this time.");
   }
 
   const packageId = generateId("srj");
@@ -226,7 +229,7 @@ export async function createStoredPackage({
     },
     allowedUses: termsPreset || TERMS_PRESET,
     termsVersion: TERMS_VERSION,
-    noticeText: GOVERNANCE_NOTICE,
+    noticeText: noticeText || GOVERNANCE_NOTICE,
   };
 
   const nextPackage: StoredDemoPackage = {
@@ -311,18 +314,20 @@ function buildAccessKeyFileText(input: {
   createdAt: string;
   geoSummary?: string | null;
   ownerName?: string | null;
+  ownerOrganization?: string | null;
   ownerEmail?: string | null;
   accessEventsText?: string;
 }) {
   return [
-    "SRJ SECURE KEY",
-    `Secure Key File ID: ${input.accessKeyId}`,
+    "SRJ ROOT KEY",
+    `SRJ-root key file ID: ${input.accessKeyId}`,
     `Created At: ${input.createdAt}`,
     `Geolocation: ${input.geoSummary || "Unavailable"}`,
     `Owner Name: ${input.ownerName || "Unlinked"}`,
+    `Owner Organization: ${input.ownerOrganization || "Unlinked"}`,
     `Owner Email: ${input.ownerEmail || "Unlinked"}`,
     "",
-    "SECURE KEY",
+    "SRJ ROOT KEY",
     input.accessKey,
     "",
     "ACCESS EVENTS",
@@ -343,6 +348,7 @@ export async function createStoredAccessKeyFile(input: {
   accessKey: string;
   geoSummary?: string | null;
   ownerName?: string | null;
+  ownerOrganization?: string | null;
   ownerEmail?: string | null;
 }) {
   ensureBlobConfigured();
@@ -355,6 +361,7 @@ export async function createStoredAccessKeyFile(input: {
     createdAt,
     geoSummary: input.geoSummary ?? null,
     ownerName: input.ownerName ?? null,
+    ownerOrganization: input.ownerOrganization ?? null,
     ownerEmail: input.ownerEmail ?? null,
   });
 
@@ -371,12 +378,12 @@ export async function createStoredAccessKeyFile(input: {
 function parseStoredRootKeyRecordText(text: string): StoredRootKeyRecord {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   const rootKeyIndex = lines.findIndex(
-    (line) => line.trim() === "SECURE KEY" || line.trim() === "ROOT KEY",
+    (line) => line.trim() === "SRJ ROOT KEY" || line.trim() === "SECURE KEY" || line.trim() === "ROOT KEY",
   );
   const accessEventsIndex = lines.findIndex((line) => line.trim() === "ACCESS EVENTS");
 
   if (rootKeyIndex === -1 || accessEventsIndex === -1 || rootKeyIndex + 1 >= lines.length) {
-    throw new Error("Stored SRJ secure-key record is malformed.");
+    throw new Error("Stored SRJ-root key record is malformed.");
   }
 
   const readValue = (label: string) => {
@@ -393,10 +400,12 @@ function parseStoredRootKeyRecordText(text: string): StoredRootKeyRecord {
   };
 
   return {
-    accessKeyId: readValue("Secure Key File ID") || readValue("Root Key File ID"),
+    accessKeyId:
+      readValue("SRJ-root key file ID") || readValue("Secure Key File ID") || readValue("Root Key File ID"),
     createdAt: readValue("Created At"),
     geoSummary: normalizeOptional(readValue("Geolocation")),
     ownerName: normalizeOptional(readValue("Owner Name")),
+    ownerOrganization: normalizeOptional(readValue("Owner Organization")),
     ownerEmail: normalizeOptional(readValue("Owner Email")),
     accessKey: lines[rootKeyIndex + 1]?.trim() ?? "",
     accessEventsText: lines.slice(accessEventsIndex + 1).join("\n").trim(),
@@ -413,6 +422,7 @@ export async function getStoredRootKeyRecord(accessKeyId: string) {
 export async function updateStoredRootKeyProfile(input: {
   accessKeyId: string;
   ownerName?: string | null;
+  ownerOrganization?: string | null;
   ownerEmail?: string | null;
 }) {
   ensureBlobConfigured();
@@ -425,6 +435,7 @@ export async function updateStoredRootKeyProfile(input: {
     createdAt: currentRecord.createdAt,
     geoSummary: currentRecord.geoSummary,
     ownerName: input.ownerName ?? currentRecord.ownerName,
+    ownerOrganization: input.ownerOrganization ?? currentRecord.ownerOrganization,
     ownerEmail: input.ownerEmail ?? currentRecord.ownerEmail,
     accessEventsText: currentRecord.accessEventsText,
   });
@@ -461,20 +472,20 @@ async function verifyPackageOwnerRootKey(input: {
   const ownerRootKeyReference = pkg.manifest.ownerRootKeyReference;
 
   if (!ownerRootKeyReference?.accessKeyFileId) {
-    throw new Error("This package is not linked to an owner SRJ secure-key.");
+    throw new Error("This package is not linked to an owner SRJ-root key.");
   }
 
   if (
     input.rootKeyFileId &&
     ownerRootKeyReference.accessKeyFileId !== input.rootKeyFileId.trim()
   ) {
-    throw new Error("The SRJ secure-key does not match this package owner.");
+    throw new Error("The SRJ-root key does not match this package owner.");
   }
 
   const storedRootKey = await readStoredRootKeyValue(ownerRootKeyReference.accessKeyFileId);
 
   if (storedRootKey !== input.rootKey.trim()) {
-    throw new Error("The SRJ secure-key does not match this package owner.");
+    throw new Error("The SRJ-root key does not match this package owner.");
   }
 
   return {
@@ -558,6 +569,7 @@ export async function appendStoredAccessKeyAccessEvent(input: {
   accessKeyId: string;
   packageId: string;
   fullName: string;
+  organization?: string;
   email: string;
   acceptedAt: string;
   accessorRootKey?: string;
@@ -571,6 +583,7 @@ export async function appendStoredAccessKeyAccessEvent(input: {
     `Accepted At: ${input.acceptedAt}`,
     `Package ID: ${input.packageId}`,
     `Full Name: ${input.fullName}`,
+    `Organization: ${input.organization || "Unavailable"}`,
     `Email: ${input.email}`,
     `Accessor Root Key: ${input.accessorRootKey || "Unavailable"}`,
     `Geolocation: ${input.geoSummary || "Unavailable"}`,
@@ -583,6 +596,7 @@ export async function appendStoredAccessKeyAccessEvent(input: {
     createdAt: currentRecord.createdAt,
     geoSummary: currentRecord.geoSummary,
     ownerName: currentRecord.ownerName,
+    ownerOrganization: currentRecord.ownerOrganization,
     ownerEmail: currentRecord.ownerEmail,
     accessEventsText: currentRecord.accessEventsText
       ? `${currentRecord.accessEventsText}\n${eventText}`

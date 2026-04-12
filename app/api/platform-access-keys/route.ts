@@ -35,20 +35,23 @@ export async function POST(request: Request) {
     const payload = (await request.json()) as {
       accessKey?: string;
       ownerName?: string;
+      ownerOrganization?: string;
       ownerEmail?: string;
     };
     const accessKey = String(payload.accessKey ?? "").trim();
     const ownerName = String(payload.ownerName ?? "").trim() || null;
+    const ownerOrganization = String(payload.ownerOrganization ?? "").trim() || null;
     const ownerEmail = String(payload.ownerEmail ?? "").trim() || null;
 
     if (!accessKey) {
-      return NextResponse.json({ error: "Secure-key is required." }, { status: 400 });
+      return NextResponse.json({ error: "SRJ-root key is required." }, { status: 400 });
     }
 
     const storedFile = await createStoredAccessKeyFile({
       accessKey,
       geoSummary: getGeoSummary(request),
       ownerName,
+      ownerOrganization,
       ownerEmail,
     });
 
@@ -63,7 +66,7 @@ export async function POST(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to store the SRJ secure-key file.",
+            : "Unable to store the SRJ-root key file.",
       },
       { status: 500 },
     );
@@ -79,25 +82,29 @@ export async function PATCH(request: Request) {
     const payload = (await request.json()) as {
       accessKeyId?: string;
       ownerName?: string;
+      ownerOrganization?: string;
       ownerEmail?: string;
     };
     const accessKeyId = String(payload.accessKeyId ?? "").trim();
     const ownerName = String(payload.ownerName ?? "").trim() || null;
+    const ownerOrganization = String(payload.ownerOrganization ?? "").trim() || null;
     const ownerEmail = String(payload.ownerEmail ?? "").trim() || null;
 
     if (!accessKeyId) {
-      return NextResponse.json({ error: "Secure-key ID is required." }, { status: 400 });
+      return NextResponse.json({ error: "SRJ-root key ID is required." }, { status: 400 });
     }
 
     const record = await updateStoredRootKeyProfile({
       accessKeyId,
       ownerName,
+      ownerOrganization,
       ownerEmail,
     });
 
     return NextResponse.json({
       accessKeyId: record.accessKeyId,
       ownerName: record.ownerName,
+      ownerOrganization: record.ownerOrganization,
       ownerEmail: record.ownerEmail,
     });
   } catch (error) {
@@ -106,7 +113,7 @@ export async function PATCH(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to update the SRJ secure-key profile.",
+            : "Unable to update the SRJ-root key profile.",
       },
       { status: 500 },
     );
@@ -123,7 +130,7 @@ export async function GET(request: Request) {
     const accessKeyId = searchParams.get("accessKeyId")?.trim() ?? "";
 
     if (!accessKeyId) {
-      return NextResponse.json({ error: "Secure-key ID is required." }, { status: 400 });
+      return NextResponse.json({ error: "SRJ-root key ID is required." }, { status: 400 });
     }
 
     const storedFile = await getStoredAccessKeyFile(accessKeyId);
@@ -141,7 +148,7 @@ export async function GET(request: Request) {
         error:
           error instanceof Error
             ? error.message
-            : "Unable to download the SRJ secure-key file.",
+            : "Unable to download the SRJ-root key file.",
       },
       { status: 500 },
     );

@@ -43,6 +43,7 @@ export interface DemoFileAsset extends SRJManifestFile {
 export interface AcceptanceRecord {
   fullName: string;
   email: string;
+  organization?: string;
   acceptedAt: string;
 }
 
@@ -56,6 +57,7 @@ export interface AcceptancePayload {
   packageId: string;
   fullName: string;
   email: string;
+  organization?: string;
   accepted: boolean;
   accessorRootKey?: string;
 }

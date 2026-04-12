@@ -14,6 +14,7 @@ import { AcceptanceRecord, SRJPackageManifest, StoredDemoPackage } from "@/lib/t
 interface PackageDraftInput {
   title: string;
   termsPreset: string;
+  noticeText: string;
   packageAccessKey: string;
   ownerSecureKeyFileId?: string | null;
   files: File[];
@@ -108,6 +109,7 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
       createPackage: async ({
         title,
         termsPreset,
+        noticeText,
         packageAccessKey,
         ownerSecureKeyFileId,
         files,
@@ -115,6 +117,7 @@ export function SRJStoreProvider({ children }: PropsWithChildren) {
         const formData = new FormData();
         formData.set("title", title);
         formData.set("termsPreset", termsPreset);
+        formData.set("noticeText", noticeText);
         formData.set("packageAccessKey", packageAccessKey);
         if (ownerSecureKeyFileId) {
           formData.set("ownerSecureKeyFileId", ownerSecureKeyFileId);

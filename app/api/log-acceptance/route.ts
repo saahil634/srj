@@ -47,6 +47,7 @@ export async function POST(request: Request) {
     const log = await recordAcceptanceLog({
       packageId: body.packageId,
       fullName: body.fullName,
+      organization: body.organization,
       email: body.email,
       accepted: true,
       accessorRootKey: body.accessorRootKey,
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
           accessKeyId: accessKeyFileId,
           packageId: body.packageId,
           fullName: body.fullName,
+          organization: body.organization,
           email: body.email,
           acceptedAt: log.acceptedAt,
           accessorRootKey: body.accessorRootKey,

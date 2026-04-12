@@ -6,7 +6,7 @@ import { useState } from "react";
 import { FileDropzone } from "@/components/file-dropzone";
 import { ManifestPreview } from "@/components/manifest-preview";
 import { demoCopy } from "@/lib/copy";
-import { MAX_TOTAL_UPLOAD_BYTES, TERMS_PRESET, UPLOAD_ACCEPT_LABEL } from "@/lib/constants";
+import { MAX_TOTAL_UPLOAD_BYTES } from "@/lib/constants";
 import { usePlatformAccessSession } from "@/lib/platform-access-session";
 import { exceedsUploadLimit } from "@/lib/upload-rules";
 import { useSRJStore } from "@/lib/srj-store";
@@ -16,8 +16,9 @@ export function CreatePackageForm() {
   const { accessRecord } = usePlatformAccessSession();
   const currentSecureKey = accessRecord?.keyType === "access-key" ? null : accessRecord;
   const { createPackage, loadError } = useSRJStore();
-  const [title, setTitle] = useState<string>(demoCopy.createForm.defaultTitle);
-  const [termsPreset, setTermsPreset] = useState<string>(TERMS_PRESET);
+  const [title, setTitle] = useState<string>("");
+  const [termsPreset, setTermsPreset] = useState<string>("");
+  const [noticeText, setNoticeText] = useState<string>("");
   const [packageAccessKey, setPackageAccessKey] = useState<string>(
     demoCopy.createForm.defaultPackageAccessKey,
   );
@@ -49,18 +50,27 @@ export function CreatePackageForm() {
       return;
     }
 
+    if (!termsPreset.trim()) {
+      setError("Terms and conditions of use are required.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const nextPackage = await createPackage({
         title,
         termsPreset,
+        noticeText,
         packageAccessKey,
         ownerSecureKeyFileId: currentSecureKey?.accessKeyId ?? null,
         files,
       });
 
       setFiles([]);
+      setTitle("");
+      setTermsPreset("");
+      setNoticeText("");
       router.push(`/open?packageId=${nextPackage.manifest.packageId}`);
     } catch (creationError) {
       setError(
@@ -96,7 +106,7 @@ export function CreatePackageForm() {
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal"
               placeholder={demoCopy.createForm.fields.packageTitlePlaceholder}
             />
           </label>
@@ -109,7 +119,21 @@ export function CreatePackageForm() {
               value={termsPreset}
               onChange={(event) => setTermsPreset(event.target.value)}
               rows={3}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-ink outline-none transition placeholder:text-slate-300 focus:border-signal"
+              placeholder={demoCopy.createForm.fields.termsPresetPlaceholder}
+            />
+          </label>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-ink">
+              {demoCopy.createForm.fields.noticeTextLabel}
+            </span>
+            <textarea
+              value={noticeText}
+              onChange={(event) => setNoticeText(event.target.value)}
+              rows={3}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-ink outline-none transition placeholder:text-slate-300 focus:border-signal"
+              placeholder={demoCopy.createForm.fields.noticeTextPlaceholder}
             />
           </label>
 
@@ -134,7 +158,7 @@ export function CreatePackageForm() {
             <input
               value={packageAccessKey}
               onChange={(event) => setPackageAccessKey(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal"
               placeholder={demoCopy.createForm.fields.packageAccessKeyPlaceholder}
             />
             <p className="text-sm leading-6 text-slate">
@@ -153,15 +177,11 @@ export function CreatePackageForm() {
             <button
               type="button"
               onClick={handleCreate}
-              disabled={!title.trim() || files.length === 0 || isSubmitting}
+              disabled={!title.trim() || !termsPreset.trim() || files.length === 0 || isSubmitting}
               className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal disabled:cursor-not-allowed disabled:opacity-40"
             >
               {isSubmitting ? demoCopy.createForm.submitLoading : demoCopy.createForm.submitIdle}
             </button>
-            <p className="text-sm text-slate">
-              {demoCopy.createForm.uploadSummaryPrefix} {UPLOAD_ACCEPT_LABEL.toLowerCase()}
-              {demoCopy.createForm.uploadSummarySuffix}
-            </p>
           </div>
 
           {loadError ? (

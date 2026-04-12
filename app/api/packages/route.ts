@@ -65,6 +65,7 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const title = String(formData.get("title") ?? "").trim();
     const termsPreset = String(formData.get("termsPreset") ?? "").trim();
+    const noticeText = String(formData.get("noticeText") ?? "").trim();
     const packageAccessKey = String(formData.get("packageAccessKey") ?? "").trim();
     const ownerRootKeyFileId =
       String(formData.get("ownerSecureKeyFileId") ?? formData.get("ownerRootKeyFileId") ?? "").trim() || null;
@@ -74,6 +75,13 @@ export async function POST(request: Request) {
 
     if (!title) {
       return NextResponse.json({ error: "Package title is required." }, { status: 400 });
+    }
+
+    if (!termsPreset) {
+      return NextResponse.json(
+        { error: "Terms and conditions of use are required." },
+        { status: 400 },
+      );
     }
 
     if (files.length === 0) {
@@ -109,6 +117,7 @@ export async function POST(request: Request) {
     const storedPackage = await createStoredPackage({
       title,
       termsPreset,
+      noticeText,
       packageAccessKey,
       ownerRootKeyFileId,
       files,
@@ -151,7 +160,7 @@ export async function DELETE(request: Request) {
     }
 
     if (!secureKey) {
-      return NextResponse.json({ error: "SRJ secure-key is required." }, { status: 400 });
+      return NextResponse.json({ error: "SRJ-root key is required." }, { status: 400 });
     }
 
     await deleteStoredPackage({ packageId, rootKey: secureKey, rootKeyFileId: secureKeyFileId });
@@ -167,7 +176,7 @@ export async function DELETE(request: Request) {
       {
         error: message,
       },
-      { status: message.includes("secure-key") || message.includes("root key") || message.includes("does not match") ? 403 : 500 },
+      { status: message.includes("SRJ-root key") || message.includes("root key") || message.includes("does not match") ? 403 : 500 },
     );
   }
 }

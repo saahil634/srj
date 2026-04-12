@@ -32,6 +32,7 @@ export interface PlatformAccessRecord {
   keyType?: "secure-key" | "access-key";
   ownerName?: string | null;
   ownerEmail?: string | null;
+  ownerOrganization?: string | null;
 }
 
 function randomInt(min: number, max: number) {

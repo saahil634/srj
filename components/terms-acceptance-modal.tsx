@@ -9,7 +9,12 @@ interface TermsAcceptanceModalProps {
   accessorRootKey?: string | null;
   open: boolean;
   onClose: () => void;
-  onAccepted: (acceptance: { fullName: string; email: string; acceptedAt: string }) => void;
+  onAccepted: (acceptance: {
+    fullName: string;
+    organization: string;
+    email: string;
+    acceptedAt: string;
+  }) => void;
 }
 
 export function TermsAcceptanceModal({
@@ -20,6 +25,7 @@ export function TermsAcceptanceModal({
   onAccepted,
 }: TermsAcceptanceModalProps) {
   const [fullName, setFullName] = useState("");
+  const [organization, setOrganization] = useState("");
   const [email, setEmail] = useState("");
   const [accepted, setAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,6 +49,7 @@ export function TermsAcceptanceModal({
         body: JSON.stringify({
           packageId,
           fullName,
+          organization,
           email,
           accepted,
           accessorRootKey,
@@ -56,11 +63,13 @@ export function TermsAcceptanceModal({
 
       onAccepted({
         fullName,
+        organization,
         email,
         acceptedAt: payload.acceptedAt || new Date().toISOString(),
       });
 
       setFullName("");
+      setOrganization("");
       setEmail("");
       setAccepted(false);
       onClose();
@@ -115,6 +124,17 @@ export function TermsAcceptanceModal({
               onChange={(event) => setEmail(event.target.value)}
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
               placeholder={demoCopy.termsModal.fields.emailPlaceholder}
+            />
+          </label>
+
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-ink">{demoCopy.termsModal.fields.organizationLabel}</span>
+            <input
+              required
+              value={organization}
+              onChange={(event) => setOrganization(event.target.value)}
+              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-signal"
+              placeholder={demoCopy.termsModal.fields.organizationPlaceholder}
             />
           </label>
 
