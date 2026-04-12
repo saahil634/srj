@@ -209,7 +209,12 @@ export const demoCopy = {
     },
     actions: {
       reviewTerms: "Unlock SRJ Package",
-      downloadZip: "Download SRJ package",
+      downloadZipStructured: "Download ZIP with file folders",
+      downloadZipEmbedded: "Download flat ZIP with embedded manifests",
+      downloadZipStructuredHint:
+        "Keeps the visible ZIP structure with each file paired to a manifest-reference sidecar.",
+      downloadZipEmbeddedHint:
+        "Keeps files at the ZIP root and embeds manifest details into each derivative where supported.",
     },
     unlockFacts: {
       packageId: "Package ID",
@@ -414,9 +419,13 @@ export const demoCopy = {
       keyEyebrow: "Secure relational jump root key",
       keyBody:
         "Take note of this unique artihmetic combination. It is your SRJ-root key for the current session.",
+      nextTitle: "Next stop",
+      nextBody:
+        "You can download your secure key now, then decide whether to link your contact details on the next screen.",
       linkTitle: "Link this SRJ-root key to your identity",
+      optionalLabel: "Optional:",
       linkBody:
-        "Optionally link your name, organization, and email before downloading or using this SRJ-root key. One email can be associated with multiple SRJ-root keys over time.",
+        "link your name, email, and organization to this secure key. The site administrator may follow up once per quarter with research updates, or you can skip it and evaluate anonymously. You can always link it the second time.",
       nameLabel: "Full name",
       namePlaceholder: "Enter your full name",
       organizationLabel: "Organization",
@@ -427,6 +436,9 @@ export const demoCopy = {
       statusBody:
         "Platform terms accepted and access authentication completed successfully.",
       downloadButton: "Download SRJ-root key (.txt)",
+      continueButton: "Continue",
+      backButton: "Back to secure key",
+      skipButton: "Skip and enter anonymously",
       enterButton: "Enter SRJ Website",
     },
     invitationResult: {

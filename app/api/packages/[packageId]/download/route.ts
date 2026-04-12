@@ -10,6 +10,7 @@ import {
   isBlobConfigured,
 } from "@/lib/blob-storage";
 import {
+  buildEmbeddedFileManifest,
   buildDerivativePackageEntryName,
   createDerivativeFile,
 } from "@/lib/download-derivatives";
@@ -22,7 +23,7 @@ function sanitizeZipName(name: string) {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ packageId: string }> },
 ) {
   if (!isBlobConfigured()) {
@@ -42,6 +43,8 @@ export async function GET(
 
   try {
     const storedPackage = await getStoredPackage(packageId);
+    const url = new URL(request.url);
+    const zipMode = url.searchParams.get("mode") === "flat-embedded" ? "flat-embedded" : "structured";
     const { ownerRootKeyReference: _ownerRootKeyReference, ...publicManifest } =
       storedPackage.manifest;
     const zip = new JSZip();
@@ -55,8 +58,11 @@ export async function GET(
           ...publicManifest,
           derivativePackage: {
             generatedAt: new Date().toISOString(),
+            zipMode,
             description:
-              "Recipient ZIP contains web-optimized derivative files and per-file manifest sidecars. Originals remain unchanged in secure storage.",
+              zipMode === "flat-embedded"
+                ? "Recipient ZIP contains flat web-optimized derivative files with embedded per-file manifest metadata where supported."
+                : "Recipient ZIP contains web-optimized derivative files and per-file manifest sidecars. Originals remain unchanged in secure storage.",
           },
         },
         null,
@@ -72,7 +78,9 @@ export async function GET(
       const blob = await getPrivateBlob(asset.pathname);
       const arrayBuffer = await new Response(blob.stream).arrayBuffer();
       const input = new Uint8Array(arrayBuffer);
-      const derivative = await createDerivativeFile(input, storedPackage.manifest, asset);
+      const derivative = await createDerivativeFile(input, storedPackage.manifest, asset, {
+        embedManifest: zipMode === "flat-embedded",
+      });
       const derivativeFileName = buildDerivativePackageEntryName(
         asset,
         derivative.derivativeExtension,
@@ -92,34 +100,30 @@ export async function GET(
         derivativeErrors.push(errorRecord);
       }
 
-      zip.file(`${derivativeFolder}/${derivativeFileName}`, derivative.data);
-      zip.file(
-        `${derivativeFolder}/manifest-reference.json`,
-        JSON.stringify(
-          {
-            packageId: storedPackage.manifest.packageId,
-            packageTitle: storedPackage.manifest.title,
-            fileId: asset.fileId,
-            fileName: asset.name,
-            srjKeyId: storedPackage.manifest.srjKeyReference.keyId,
-            srjKeyReference: storedPackage.manifest.srjKeyReference,
-            allowedUses: storedPackage.manifest.allowedUses,
-            termsVersion: storedPackage.manifest.termsVersion,
-            noticeText: storedPackage.manifest.noticeText,
-            derivative: {
-              fileName: derivativeFileName,
-              contentType: derivative.contentType,
-              derivativeKind: derivative.derivativeKind,
-              originalBytes: input.byteLength,
-              derivativeBytes: derivative.data.byteLength,
-              optimizationNote: derivative.optimizationNote,
-              fallbackToOriginal: derivative.derivativeKind === "passthrough",
+      if (zipMode === "flat-embedded") {
+        zip.file(derivativeFileName, derivative.data);
+      } else {
+        zip.file(`${derivativeFolder}/${derivativeFileName}`, derivative.data);
+        zip.file(
+          `${derivativeFolder}/manifest-reference.json`,
+          JSON.stringify(
+            {
+              ...buildEmbeddedFileManifest(storedPackage.manifest, asset),
+              derivative: {
+                fileName: derivativeFileName,
+                contentType: derivative.contentType,
+                derivativeKind: derivative.derivativeKind,
+                originalBytes: input.byteLength,
+                derivativeBytes: derivative.data.byteLength,
+                optimizationNote: derivative.optimizationNote,
+                fallbackToOriginal: derivative.derivativeKind === "passthrough",
+              },
             },
-          },
-          null,
-          2,
-        ),
-      );
+            null,
+            2,
+          ),
+        );
+      }
 
       derivativeEntries.push({
         fileId: asset.fileId,
@@ -139,6 +143,7 @@ export async function GET(
           packageId: storedPackage.manifest.packageId,
           srjKeyReference: storedPackage.manifest.srjKeyReference,
           generatedAt: new Date().toISOString(),
+          zipMode,
           files: derivativeEntries,
         },
         null,
@@ -209,7 +214,7 @@ export async function GET(
     return new NextResponse(stream, {
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="${packageId}.zip"`,
+        "Content-Disposition": `attachment; filename="${packageId}${zipMode === "flat-embedded" ? "-flat-embedded" : ""}.zip"`,
         "Cache-Control": "private, no-store",
       },
     });

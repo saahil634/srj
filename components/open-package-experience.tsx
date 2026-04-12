@@ -180,12 +180,27 @@ export function OpenPackageExperience() {
             ) : null}
 
             {isAccepted ? (
-              <a
-                href={`/api/packages/${activePackage.manifest.packageId}/download`}
-                className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal"
-              >
-                {demoCopy.openExperience.actions.downloadZip}
-              </a>
+              <div className="w-full space-y-3">
+                <a
+                  href={`/api/packages/${activePackage.manifest.packageId}/download`}
+                  className="block rounded-full bg-ink px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-signal"
+                >
+                  {demoCopy.openExperience.actions.downloadZipStructured}
+                </a>
+                <p className="text-sm leading-6 text-slate">
+                  {demoCopy.openExperience.actions.downloadZipStructuredHint}
+                </p>
+
+                <a
+                  href={`/api/packages/${activePackage.manifest.packageId}/download?mode=flat-embedded`}
+                  className="block rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-ink transition hover:border-signal hover:text-signal"
+                >
+                  {demoCopy.openExperience.actions.downloadZipEmbedded}
+                </a>
+                <p className="text-sm leading-6 text-slate">
+                  {demoCopy.openExperience.actions.downloadZipEmbeddedHint}
+                </p>
+              </div>
             ) : null}
           </div>
         </aside>

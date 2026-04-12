@@ -14,7 +14,7 @@ import { PlatformAccessSessionContext } from "@/lib/platform-access-session";
 import { StoredDemoPackage } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
-type AccessStage = 1 | 2 | 3 | 4;
+type AccessStage = 1 | 2 | 3 | 4 | 5;
 type KeyLookupMode = "secure-key" | "access-key";
 type AuthPanelMode = "build" | "access";
 type GateScreen = "notice" | "access";
@@ -636,15 +636,27 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     setCompletionError(null);
 
     try {
-      const nextRecord = await persistRootKeyIdentity(pendingRecord);
-
-      setPendingRecord(nextRecord);
-      downloadAccessKeyFile(nextRecord);
+      downloadAccessKeyFile(pendingRecord);
     } catch (error) {
       setCompletionError(
         error instanceof Error ? error.message : demoCopy.platformAccess.errors.ownerActionFailed,
       );
     }
+  }
+
+  function handleCompletionContinue() {
+    setCompletionError(null);
+    setStage(5);
+  }
+
+  function handleCompletionSkip() {
+    if (!pendingRecord) {
+      return;
+    }
+
+    setCompletionError(null);
+    setAccessRecord(pendingRecord);
+    setPendingRecord(null);
   }
 
   function handleInvitationEnter() {
@@ -890,9 +902,60 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
                         <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
                           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">
+                            {demoCopy.platformAccess.completion.nextTitle}
+                          </p>
+                          <p className="mt-2 text-sm leading-6 text-slate">
+                            {demoCopy.platformAccess.completion.nextBody}
+                          </p>
+                        </div>
+
+                        <div className="rounded-[1.5rem] border border-slate-200 bg-mist p-4">
+                          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">
+                            {demoCopy.platformAccess.completion.statusEyebrow}
+                          </p>
+                          <p className="mt-2 text-sm leading-6 text-ink">
+                            {demoCopy.platformAccess.completion.statusBody}
+                          </p>
+                        </div>
+
+                        {completionError ? (
+                          <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+                            {completionError}
+                          </div>
+                        ) : null}
+
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            type="button"
+                            onClick={handleCompletionDownload}
+                            disabled={isPersistingProfile}
+                            className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
+                          >
+                            {demoCopy.platformAccess.completion.downloadButton}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleCompletionContinue}
+                            disabled={isPersistingProfile}
+                            className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal disabled:opacity-40"
+                          >
+                            {demoCopy.platformAccess.completion.continueButton}
+                          </button>
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {stage === 5 && pendingRecord ? (
+                      <div className="space-y-5">
+                        <div className="rounded-[1.75rem] border border-slate-200 bg-mist p-5">
+                          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">
                             {demoCopy.platformAccess.completion.linkTitle}
                           </p>
                           <p className="mt-2 text-sm leading-6 text-slate">
+                            <span className="font-semibold text-ink">
+                              {demoCopy.platformAccess.completion.optionalLabel}
+                            </span>{" "}
                             {demoCopy.platformAccess.completion.linkBody}
                           </p>
 
@@ -937,15 +1000,6 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                           </div>
                         </div>
 
-                        <div className="rounded-[1.5rem] border border-slate-200 bg-mist p-4">
-                          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">
-                            {demoCopy.platformAccess.completion.statusEyebrow}
-                          </p>
-                          <p className="mt-2 text-sm leading-6 text-ink">
-                            {demoCopy.platformAccess.completion.statusBody}
-                          </p>
-                        </div>
-
                         {completionError ? (
                           <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
                             {completionError}
@@ -955,11 +1009,19 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                         <div className="flex flex-wrap gap-3">
                           <button
                             type="button"
-                            onClick={handleCompletionDownload}
+                            onClick={() => setStage(4)}
+                            className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal"
+                          >
+                            {demoCopy.platformAccess.completion.backButton}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleCompletionSkip}
                             disabled={isPersistingProfile}
                             className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:opacity-40"
                           >
-                            {demoCopy.platformAccess.completion.downloadButton}
+                            {demoCopy.platformAccess.completion.skipButton}
                           </button>
 
                           <button

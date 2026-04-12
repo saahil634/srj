@@ -16,9 +16,9 @@ export function CreatePackageForm() {
   const { accessRecord } = usePlatformAccessSession();
   const currentSecureKey = accessRecord?.keyType === "access-key" ? null : accessRecord;
   const { createPackage, loadError } = useSRJStore();
-  const [title, setTitle] = useState<string>("");
-  const [termsPreset, setTermsPreset] = useState<string>("");
-  const [noticeText, setNoticeText] = useState<string>("");
+  const [title, setTitle] = useState<string>(demoCopy.createForm.defaultTitle);
+  const [termsPreset, setTermsPreset] = useState<string>(demoCopy.createForm.defaultTermsPreset);
+  const [noticeText, setNoticeText] = useState<string>(demoCopy.createForm.defaultNoticeText);
   const [packageAccessKey, setPackageAccessKey] = useState<string>(
     demoCopy.createForm.defaultPackageAccessKey,
   );
@@ -26,6 +26,17 @@ export function CreatePackageForm() {
   const [error, setError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const titleTone =
+    title === demoCopy.createForm.defaultTitle ? "text-slate-400" : "text-ink";
+  const termsTone =
+    termsPreset === demoCopy.createForm.defaultTermsPreset ? "text-slate-400" : "text-ink";
+  const noticeTone =
+    noticeText === demoCopy.createForm.defaultNoticeText ? "text-slate-400" : "text-ink";
+  const accessKeyTone =
+    packageAccessKey === demoCopy.createForm.defaultPackageAccessKey
+      ? "text-slate-400"
+      : "text-ink";
 
   async function handleCreate() {
     setError(null);
@@ -68,9 +79,10 @@ export function CreatePackageForm() {
       });
 
       setFiles([]);
-      setTitle("");
-      setTermsPreset("");
-      setNoticeText("");
+      setTitle(demoCopy.createForm.defaultTitle);
+      setTermsPreset(demoCopy.createForm.defaultTermsPreset);
+      setNoticeText(demoCopy.createForm.defaultNoticeText);
+      setPackageAccessKey(demoCopy.createForm.defaultPackageAccessKey);
       router.push(`/open?packageId=${nextPackage.manifest.packageId}`);
     } catch (creationError) {
       setError(
@@ -106,7 +118,7 @@ export function CreatePackageForm() {
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal"
+              className={`w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal ${titleTone}`}
               placeholder={demoCopy.createForm.fields.packageTitlePlaceholder}
             />
           </label>
@@ -119,7 +131,7 @@ export function CreatePackageForm() {
               value={termsPreset}
               onChange={(event) => setTermsPreset(event.target.value)}
               rows={3}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-ink outline-none transition placeholder:text-slate-300 focus:border-signal"
+              className={`w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal ${termsTone}`}
               placeholder={demoCopy.createForm.fields.termsPresetPlaceholder}
             />
           </label>
@@ -132,7 +144,7 @@ export function CreatePackageForm() {
               value={noticeText}
               onChange={(event) => setNoticeText(event.target.value)}
               rows={3}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-ink outline-none transition placeholder:text-slate-300 focus:border-signal"
+              className={`w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal ${noticeTone}`}
               placeholder={demoCopy.createForm.fields.noticeTextPlaceholder}
             />
           </label>
@@ -158,7 +170,7 @@ export function CreatePackageForm() {
             <input
               value={packageAccessKey}
               onChange={(event) => setPackageAccessKey(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal"
+              className={`w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal ${accessKeyTone}`}
               placeholder={demoCopy.createForm.fields.packageAccessKeyPlaceholder}
             />
             <p className="text-sm leading-6 text-slate">

@@ -21,8 +21,66 @@ export interface DerivativeResult {
   };
 }
 
+export interface EmbeddedFileManifest {
+  packageId: string;
+  packageTitle: string;
+  fileId: string;
+  fileName: string;
+  fileKind: DemoFileAsset["kind"];
+  srjKeyId: string;
+  srjRelation: string;
+  allowedUses: string;
+  termsVersion: string;
+  noticeText: string;
+}
+
 function sanitizeName(name: string) {
   return name.replace(/[\\/:*?"<>|]+/g, "-");
+}
+
+function escapeXml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+export function buildEmbeddedFileManifest(
+  manifest: SRJPackageManifest,
+  asset: DemoFileAsset,
+): EmbeddedFileManifest {
+  return {
+    packageId: manifest.packageId,
+    packageTitle: manifest.title,
+    fileId: asset.fileId,
+    fileName: asset.name,
+    fileKind: asset.kind,
+    srjKeyId: manifest.srjKeyReference.keyId,
+    srjRelation: manifest.srjKeyReference.relationExpression,
+    allowedUses: manifest.allowedUses,
+    termsVersion: manifest.termsVersion,
+    noticeText: manifest.noticeText,
+  };
+}
+
+function serializeEmbeddedManifest(manifest: EmbeddedFileManifest) {
+  return JSON.stringify(manifest);
+}
+
+function buildEmbeddedManifestXmp(manifest: EmbeddedFileManifest) {
+  const manifestJson = escapeXml(JSON.stringify(manifest));
+
+  return [
+    '<x:xmpmeta xmlns:x="adobe:ns:meta/">',
+    '  <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">',
+    '    <rdf:Description rdf:about="" xmlns:srj="https://srj.pubpub.org/ns/1.0/">',
+    `      <srj:manifest>${manifestJson}</srj:manifest>`,
+    "    </rdf:Description>",
+    "  </rdf:RDF>",
+    "</x:xmpmeta>",
+  ].join("\n");
 }
 
 function spawnProcess(command: string, args: string[]) {
@@ -43,15 +101,24 @@ function spawnProcess(command: string, args: string[]) {
   });
 }
 
-async function createImageDerivative(buffer: Uint8Array): Promise<DerivativeResult> {
-  const output = await sharp(buffer, { animated: true })
+async function createImageDerivative(
+  buffer: Uint8Array,
+  embeddedManifest?: EmbeddedFileManifest,
+): Promise<DerivativeResult> {
+  let pipeline = sharp(buffer, { animated: true })
     .rotate()
     .resize({
       width: 1600,
       height: 1600,
       fit: "inside",
       withoutEnlargement: true,
-    })
+    });
+
+  if (embeddedManifest) {
+    pipeline = pipeline.withXmp(buildEmbeddedManifestXmp(embeddedManifest));
+  }
+
+  const output = await pipeline
     .webp({
       quality: 78,
       effort: 4,
@@ -90,18 +157,24 @@ async function createPdfDerivative(
   buffer: Uint8Array,
   manifest: SRJPackageManifest,
   asset: DemoFileAsset,
+  embeddedManifest?: EmbeddedFileManifest,
 ): Promise<DerivativeResult> {
   const pdfDoc = await PDFDocument.load(buffer);
+  const embeddedManifestText = embeddedManifest
+    ? serializeEmbeddedManifest(embeddedManifest)
+    : null;
 
   pdfDoc.setTitle(`${manifest.title} - web derivative`);
   pdfDoc.setSubject(
-    `SRJ package ${manifest.packageId} | key ${manifest.srjKeyReference.keyId} | file ${asset.fileId}`,
+    embeddedManifestText ||
+      `SRJ package ${manifest.packageId} | key ${manifest.srjKeyReference.keyId} | file ${asset.fileId}`,
   );
   pdfDoc.setKeywords([
     manifest.packageId,
     manifest.srjKeyReference.keyId,
     manifest.srjKeyReference.relationExpression,
     asset.fileId,
+    "srj-manifest",
   ]);
   pdfDoc.setProducer("SRJ Demo derivative pipeline");
   pdfDoc.setCreator("SRJ Demo");
@@ -123,6 +196,7 @@ async function createPdfDerivative(
 async function createVideoDerivative(
   buffer: Uint8Array,
   asset: DemoFileAsset,
+  embeddedManifest?: EmbeddedFileManifest,
 ): Promise<DerivativeResult> {
   if (!ffmpegPath) {
     return {
@@ -141,6 +215,7 @@ async function createVideoDerivative(
 
   try {
     await writeFile(inputPath, buffer);
+    const manifestComment = embeddedManifest ? serializeEmbeddedManifest(embeddedManifest) : null;
     await spawnProcess(ffmpegPath, [
       "-y",
       "-i",
@@ -161,6 +236,14 @@ async function createVideoDerivative(
       "aac",
       "-b:a",
       "128k",
+      ...(manifestComment
+        ? [
+            "-metadata",
+            `comment=${manifestComment}`,
+            "-metadata",
+            `description=${manifestComment}`,
+          ]
+        : []),
       outputPath,
     ]);
 
@@ -191,6 +274,7 @@ async function createVideoDerivative(
 async function createAudioDerivative(
   buffer: Uint8Array,
   asset: DemoFileAsset,
+  embeddedManifest?: EmbeddedFileManifest,
 ): Promise<DerivativeResult> {
   if (!ffmpegPath) {
     return {
@@ -209,6 +293,7 @@ async function createAudioDerivative(
 
   try {
     await writeFile(inputPath, buffer);
+    const manifestComment = embeddedManifest ? serializeEmbeddedManifest(embeddedManifest) : null;
     await spawnProcess(ffmpegPath, [
       "-y",
       "-i",
@@ -220,6 +305,14 @@ async function createAudioDerivative(
       "128k",
       "-ar",
       "44100",
+      ...(manifestComment
+        ? [
+            "-metadata",
+            `comment=${manifestComment}`,
+            "-metadata",
+            `description=${manifestComment}`,
+          ]
+        : []),
       outputPath,
     ]);
 
@@ -251,19 +344,24 @@ function createTextDerivative(
   buffer: Uint8Array,
   manifest: SRJPackageManifest,
   asset: DemoFileAsset,
+  embeddedManifest?: EmbeddedFileManifest,
 ): DerivativeResult {
   const decoder = new TextDecoder("utf-8", { fatal: false });
   const encoder = new TextEncoder();
   const sourceText = decoder.decode(buffer).replace(/\r\n/g, "\n");
   const header = [
     "SRJ DERIVATIVE DOCUMENT",
-    `Package ID: ${manifest.packageId}`,
-    `Package Title: ${manifest.title}`,
-    `File ID: ${asset.fileId}`,
-    `SRJ Key ID: ${manifest.srjKeyReference.keyId}`,
-    `SRJ Relation: ${manifest.srjKeyReference.relationExpression}`,
-    `Allowed Uses: ${manifest.allowedUses}`,
-    `Terms Version: ${manifest.termsVersion}`,
+    ...(embeddedManifest
+      ? ["Embedded SRJ manifest:", serializeEmbeddedManifest(embeddedManifest)]
+      : [
+          `Package ID: ${manifest.packageId}`,
+          `Package Title: ${manifest.title}`,
+          `File ID: ${asset.fileId}`,
+          `SRJ Key ID: ${manifest.srjKeyReference.keyId}`,
+          `SRJ Relation: ${manifest.srjKeyReference.relationExpression}`,
+          `Allowed Uses: ${manifest.allowedUses}`,
+          `Terms Version: ${manifest.termsVersion}`,
+        ]),
     "",
     "--- DERIVATIVE CONTENT BELOW ---",
     "",
@@ -284,26 +382,32 @@ export async function createDerivativeFile(
   buffer: Uint8Array,
   manifest: SRJPackageManifest,
   asset: DemoFileAsset,
+  options?: {
+    embedManifest?: boolean;
+  },
 ): Promise<DerivativeResult> {
+  const embeddedManifest =
+    options?.embedManifest === true ? buildEmbeddedFileManifest(manifest, asset) : undefined;
+
   try {
     if (asset.kind === "image") {
-      return await createImageDerivative(buffer);
+      return await createImageDerivative(buffer, embeddedManifest);
     }
 
     if (asset.kind === "pdf") {
-      return await createPdfDerivative(buffer, manifest, asset);
+      return await createPdfDerivative(buffer, manifest, asset, embeddedManifest);
     }
 
     if (asset.kind === "audio") {
-      return await createAudioDerivative(buffer, asset);
+      return await createAudioDerivative(buffer, asset, embeddedManifest);
     }
 
     if (asset.kind === "video") {
-      return await createVideoDerivative(buffer, asset);
+      return await createVideoDerivative(buffer, asset, embeddedManifest);
     }
 
     if (asset.kind === "text") {
-      return createTextDerivative(buffer, manifest, asset);
+      return createTextDerivative(buffer, manifest, asset, embeddedManifest);
     }
   } catch (error) {
     return createPassthroughDerivative(
