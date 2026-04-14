@@ -5,6 +5,7 @@ import {
   BLOB_CONFIG_ERROR,
   createStoredPackage,
   deleteStoredPackage,
+  findStoredRootKeyRecordByValue,
   isBlobConfigured,
   listStoredPackagesByOwnerRootKey,
   listStoredPackages,
@@ -33,11 +34,16 @@ export async function GET(request: Request) {
       searchParams.get("secureKeyFileId")?.trim() ??
       searchParams.get("rootKeyFileId")?.trim() ??
       "";
+    const resolvedOwnerRootKeyRecord =
+      mode === "owner" && secureKey
+        ? await findStoredRootKeyRecordByValue(secureKey)
+        : null;
     const packages =
       mode === "owner"
         ? await listStoredPackagesByOwnerRootKey({
             rootKey: secureKey,
-            rootKeyFileId: secureKeyFileId || null,
+            rootKeyFileId:
+              (resolvedOwnerRootKeyRecord?.accessKeyId ?? secureKeyFileId) || null,
           })
         : await listStoredPackages();
 

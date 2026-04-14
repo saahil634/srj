@@ -655,6 +655,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
     }
 
     setCompletionError(null);
+    persistAccessRecord(pendingRecord);
     setAccessRecord(pendingRecord);
     setPendingRecord(null);
   }

@@ -129,6 +129,8 @@ export const demoCopy = {
     successBody:
       "The SRJ package is now available, along with the file manifests.",
     successLink: "Continue to unlock SRJ →",
+    viewManifestButton: "View Manifest",
+    closeManifestButton: "Close Manifest",
     errors: {
       totalUploadLimit: "Total upload size must stay within 10 MB.",
       invalidRelation: "Enter a non-empty package SRJ-access key.",

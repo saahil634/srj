@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 
 import { FileDropzone } from "@/components/file-dropzone";
@@ -8,11 +8,11 @@ import { ManifestPreview } from "@/components/manifest-preview";
 import { demoCopy } from "@/lib/copy";
 import { MAX_TOTAL_UPLOAD_BYTES } from "@/lib/constants";
 import { usePlatformAccessSession } from "@/lib/platform-access-session";
+import { SRJPackageManifest } from "@/lib/types";
 import { exceedsUploadLimit } from "@/lib/upload-rules";
 import { useSRJStore } from "@/lib/srj-store";
 
 export function CreatePackageForm() {
-  const router = useRouter();
   const { accessRecord } = usePlatformAccessSession();
   const currentSecureKey = accessRecord?.keyType === "access-key" ? null : accessRecord;
   const { createPackage, loadError } = useSRJStore();
@@ -26,6 +26,9 @@ export function CreatePackageForm() {
   const [error, setError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdPackageId, setCreatedPackageId] = useState<string | null>(null);
+  const [createdManifest, setCreatedManifest] = useState<SRJPackageManifest | null>(null);
+  const [isManifestOpen, setIsManifestOpen] = useState(false);
 
   const titleTone =
     title === demoCopy.createForm.defaultTitle ? "text-slate-400" : "text-ink";
@@ -78,12 +81,13 @@ export function CreatePackageForm() {
         files,
       });
 
+      setCreatedPackageId(nextPackage.manifest.packageId);
+      setCreatedManifest(nextPackage.manifest);
       setFiles([]);
       setTitle(demoCopy.createForm.defaultTitle);
       setTermsPreset(demoCopy.createForm.defaultTermsPreset);
       setNoticeText(demoCopy.createForm.defaultNoticeText);
       setPackageAccessKey(demoCopy.createForm.defaultPackageAccessKey);
-      router.push(`/open?packageId=${nextPackage.manifest.packageId}`);
     } catch (creationError) {
       setError(
         creationError instanceof Error
@@ -96,32 +100,33 @@ export function CreatePackageForm() {
   }
 
   return (
-    <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-panel">
-        <div className="mb-6 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm uppercase tracking-[0.22em] text-signal">
-              {demoCopy.createForm.eyebrow}
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold text-ink">{demoCopy.createForm.title}</h2>
+    <>
+      <div className="grid items-start gap-8">
+        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-panel">
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm uppercase tracking-[0.22em] text-signal">
+                {demoCopy.createForm.eyebrow}
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-ink">{demoCopy.createForm.title}</h2>
+            </div>
+            <div className="rounded-full bg-mist px-4 py-2 text-sm font-medium text-slate">
+              {demoCopy.createForm.storageBadge}
+            </div>
           </div>
-          <div className="rounded-full bg-mist px-4 py-2 text-sm font-medium text-slate">
-            {demoCopy.createForm.storageBadge}
-          </div>
-        </div>
 
-        <div className="space-y-5">
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-ink">
-              {demoCopy.createForm.fields.packageTitleLabel}
-            </span>
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              className={`w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal ${titleTone}`}
-              placeholder={demoCopy.createForm.fields.packageTitlePlaceholder}
-            />
-          </label>
+          <div className="space-y-5">
+            <label className="block space-y-2">
+              <span className="text-sm font-medium text-ink">
+                {demoCopy.createForm.fields.packageTitleLabel}
+              </span>
+              <input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                className={`w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition placeholder:text-slate-300 focus:border-signal ${titleTone}`}
+                placeholder={demoCopy.createForm.fields.packageTitlePlaceholder}
+              />
+            </label>
 
           <label className="block space-y-2">
             <span className="text-sm font-medium text-ink">
@@ -194,7 +199,30 @@ export function CreatePackageForm() {
             >
               {isSubmitting ? demoCopy.createForm.submitLoading : demoCopy.createForm.submitIdle}
             </button>
+            <button
+              type="button"
+              onClick={() => setIsManifestOpen(true)}
+              disabled={!createdManifest}
+              className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-ink transition hover:border-signal hover:text-signal disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              {demoCopy.createForm.viewManifestButton}
+            </button>
           </div>
+
+          {createdPackageId && createdManifest ? (
+            <div className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-ink">
+              <p className="font-semibold">
+                {demoCopy.createForm.successTitlePrefix} {createdPackageId}
+              </p>
+              <p className="mt-2 text-slate">{demoCopy.createForm.successBody}</p>
+              <Link
+                href={`/open?packageId=${createdPackageId}`}
+                className="mt-3 inline-flex font-semibold text-signal transition hover:text-ink"
+              >
+                {demoCopy.createForm.successLink}
+              </Link>
+            </div>
+          ) : null}
 
           {loadError ? (
             <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
@@ -207,13 +235,25 @@ export function CreatePackageForm() {
               {error}
             </div>
           ) : null}
+          </div>
+        </section>
+      </div>
+      {isManifestOpen && createdManifest ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-6 backdrop-blur-sm">
+          <div className="w-full max-w-4xl">
+            <div className="mb-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsManifestOpen(false)}
+                className="rounded-full border border-white/30 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              >
+                {demoCopy.createForm.closeManifestButton}
+              </button>
+            </div>
+            <ManifestPreview manifest={createdManifest} />
+          </div>
         </div>
-      </section>
-
-      <ManifestPreview
-        className="xl:sticky xl:top-24"
-        manifest={null}
-      />
-    </div>
+      ) : null}
+    </>
   );
 }

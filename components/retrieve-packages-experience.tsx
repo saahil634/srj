@@ -202,7 +202,7 @@ export function RetrievePackagesExperience() {
           {demoCopy.retrieveExperience.lookup.body}
         </p>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div className="mt-6 space-y-4">
           <label className="block flex-1 space-y-2">
             <span className="text-sm font-medium text-ink">
               {demoCopy.retrieveExperience.lookup.keyLabel}
@@ -214,16 +214,18 @@ export function RetrievePackagesExperience() {
               placeholder={demoCopy.retrieveExperience.lookup.keyPlaceholder}
             />
           </label>
-          <button
-            type="button"
-            onClick={handleRetrieve}
-            disabled={isRetrieving}
-            className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal md:min-w-[11rem]"
-          >
-            {isRetrieving || isLoading
-              ? demoCopy.retrieveExperience.lookup.retrievingButton
-              : demoCopy.retrieveExperience.lookup.retrieveButton}
-          </button>
+          <div>
+            <button
+              type="button"
+              onClick={handleRetrieve}
+              disabled={isRetrieving}
+              className="w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal sm:w-auto sm:min-w-[11rem]"
+            >
+              {isRetrieving || isLoading
+                ? demoCopy.retrieveExperience.lookup.retrievingButton
+                : demoCopy.retrieveExperience.lookup.retrieveButton}
+            </button>
+          </div>
         </div>
 
         {loadError ? (
@@ -250,7 +252,7 @@ export function RetrievePackagesExperience() {
           {demoCopy.retrieveExperience.ownerFlow.body}
         </p>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+        <div className="mt-6 space-y-4">
           <div className="rounded-[1.5rem] border border-slate-200 bg-mist p-4">
             <p className="text-sm font-medium text-ink">
               {demoCopy.retrieveExperience.ownerFlow.rootKeyLabel}
@@ -260,16 +262,18 @@ export function RetrievePackagesExperience() {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleLoadOwnerPackages}
-            disabled={isLoadingOwnerPackages || !accessRecord?.accessKey}
-            className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal disabled:cursor-not-allowed disabled:opacity-40 md:min-w-[11rem]"
-          >
-            {isLoadingOwnerPackages
-              ? demoCopy.retrieveExperience.ownerFlow.loadingButton
-              : demoCopy.retrieveExperience.ownerFlow.loadButton}
-          </button>
+          <div>
+            <button
+              type="button"
+              onClick={handleLoadOwnerPackages}
+              disabled={isLoadingOwnerPackages || !accessRecord?.accessKey}
+              className="w-full rounded-full bg-ink px-5 py-3 text-sm font-semibold text-white transition hover:bg-signal disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto sm:min-w-[11rem]"
+            >
+              {isLoadingOwnerPackages
+                ? demoCopy.retrieveExperience.ownerFlow.loadingButton
+                : demoCopy.retrieveExperience.ownerFlow.loadButton}
+            </button>
+          </div>
         </div>
 
         {ownerError ? (
