@@ -122,6 +122,12 @@ export function OpenPackageExperience() {
   }
 
   const isAccepted = Boolean(activePackage.acceptance);
+  const isOwnerSessionAccess = Boolean(
+    accessRecord?.keyType !== "access-key" &&
+      accessRecord?.accessKeyId &&
+      activePackage.manifest.ownerRootKeyReference?.accessKeyFileId &&
+      accessRecord.accessKeyId === activePackage.manifest.ownerRootKeyReference.accessKeyFileId,
+  );
 
   return (
     <div className="space-y-8">
@@ -259,6 +265,13 @@ export function OpenPackageExperience() {
         accessorRootKey={
           accessRecord?.keyType === "access-key" ? null : (accessRecord?.accessKey ?? null)
         }
+        ownerSession={{
+          canSkipIdentity: isOwnerSessionAccess,
+          sessionKey: accessRecord?.keyType === "access-key" ? null : (accessRecord?.accessKey ?? null),
+          ownerName: accessRecord?.ownerName ?? null,
+          ownerEmail: accessRecord?.ownerEmail ?? null,
+          ownerOrganization: accessRecord?.ownerOrganization ?? null,
+        }}
         open={showModal}
         onClose={() => setShowModal(false)}
         onAccepted={(acceptance) =>

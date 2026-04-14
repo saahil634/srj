@@ -211,12 +211,12 @@ export const demoCopy = {
     },
     actions: {
       reviewTerms: "Unlock SRJ Package",
-      downloadZipStructured: "Download ZIP with file folders",
-      downloadZipEmbedded: "Download flat ZIP with embedded manifests",
+      downloadZipStructured: "Download ZIP with files and manifests",
+      downloadZipEmbedded: "Download ZIP with files embedded with manifest",
       downloadZipStructuredHint:
-        "Keeps the visible ZIP structure with each file paired to a manifest-reference sidecar.",
+        "Keeps the files in individual folders for each file paired to a manifest details.",
       downloadZipEmbeddedHint:
-        "Keeps files at the ZIP root and embeds manifest details into each derivative where supported.",
+        "Keeps the files together in a single folder with manifest details embedded into each file.",
     },
     unlockFacts: {
       packageId: "Package ID",
@@ -231,6 +231,7 @@ export const demoCopy = {
     lookup: {
       eyebrow: "Package access",
       title: "Unlock an SRJ package",
+      callout: "Click here to unlock your package.",
       body:
         "Enter the SRJ-access key to search for matching SRJ package records. SRJ packages remain hidden until a matching key is provided.",
       keyLabel: "SRJ-access key",
@@ -313,6 +314,15 @@ export const demoCopy = {
     eyebrow: "Terms acceptance",
     title: "Unlock SRJ package access",
     closeButton: "Close",
+    ownerSession: {
+      eyebrow: "Current session key",
+      body:
+        "This package matches your active SRJ-root key session. You can skip entering your details and still have the access recorded.",
+      skipButton: "Skip details and unlock",
+      fallbackName: "SRJ-root key session holder",
+      fallbackEmail: "root-key-session@srj.local",
+      fallbackOrganization: "Not provided",
+    },
     fields: {
       fullNameLabel: "Full name",
       fullNamePlaceholder: "Lorem Epsum",
@@ -327,6 +337,7 @@ export const demoCopy = {
     submitIdle: "Accept and unlock",
     submitLoading: "Recording acceptance...",
     errors: {
+      acceptRequired: "Accept the terms and conditions to unlock this package.",
       unableToLog: "Unable to log terms acceptance",
       unableToLogFallback: "Unable to log acceptance",
     },

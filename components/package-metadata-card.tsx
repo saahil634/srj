@@ -33,14 +33,14 @@ export function PackageMetadataCard({ manifest }: PackageMetadataCardProps) {
         <MetadataItem label={demoCopy.packageMetadata.labels.totalPackageSize} value={formatBytes(totalBytes)} />
       </dl>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <div className="rounded-[1.5rem] bg-mist p-4">
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <div className="h-full rounded-[1.5rem] bg-mist p-4">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate">
             {demoCopy.packageMetadata.labels.allowedUses}
           </p>
           <p className="mt-2 text-base leading-7 text-ink">{manifest.allowedUses}</p>
         </div>
-        <div className="rounded-[1.5rem] bg-amber-50 p-4">
+        <div className="h-full rounded-[1.5rem] bg-amber-50 p-4">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ember">
             {demoCopy.packageMetadata.labels.noticeText}
           </p>

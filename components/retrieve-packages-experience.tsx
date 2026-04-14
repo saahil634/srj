@@ -198,6 +198,9 @@ export function RetrievePackagesExperience() {
         <h2 className="mt-2 text-2xl font-semibold text-ink">
           {demoCopy.retrieveExperience.lookup.title}
         </h2>
+        <p className="mt-3 text-base font-semibold text-signal">
+          {demoCopy.retrieveExperience.lookup.callout}
+        </p>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate">
           {demoCopy.retrieveExperience.lookup.body}
         </p>
