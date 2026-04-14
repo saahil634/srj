@@ -321,6 +321,7 @@ function buildAccessKeyFileText(input: {
   return [
     "SRJ ROOT KEY",
     `SRJ-root key file ID: ${input.accessKeyId}`,
+    `SRJ-root key value: ${input.accessKey}`,
     `Created At: ${input.createdAt}`,
     `Geolocation: ${input.geoSummary || "Unavailable"}`,
     `Owner Name: ${input.ownerName || "Unlinked"}`,
@@ -333,6 +334,12 @@ function buildAccessKeyFileText(input: {
     "ACCESS EVENTS",
     input.accessEventsText?.trim() ? input.accessEventsText.trim() : "",
   ].join("\n");
+}
+
+function isLikelyMetadataLabelLine(value: string) {
+  return /^(SRJ-root key file ID|Secure Key File ID|Root Key File ID|SRJ-root key value|Created At|Geolocation|Owner Name|Owner Organization|Owner Email):/i.test(
+    value,
+  );
 }
 
 async function writeTextBlob(pathname: string, value: string) {
@@ -409,6 +416,21 @@ function parseStoredRootKeyRecordText(text: string): StoredRootKeyRecord {
     return value;
   };
 
+  const explicitAccessKey =
+    readValue("SRJ-root key value") ||
+    readValue("Secure Key Value") ||
+    readValue("Root Key Value");
+  const blockAccessKey = lines[rootKeyIndex + 1]?.trim() ?? "";
+  const accessKey = explicitAccessKey
+    ? explicitAccessKey
+    : isLikelyMetadataLabelLine(blockAccessKey)
+      ? ""
+      : blockAccessKey;
+
+  if (!accessKey) {
+    throw new Error("Stored SRJ-root key record is missing the root-key value.");
+  }
+
   return {
     accessKeyId:
       readValue("SRJ-root key file ID") || readValue("Secure Key File ID") || readValue("Root Key File ID"),
@@ -417,7 +439,7 @@ function parseStoredRootKeyRecordText(text: string): StoredRootKeyRecord {
     ownerName: normalizeOptional(readValue("Owner Name")),
     ownerOrganization: normalizeOptional(readValue("Owner Organization")),
     ownerEmail: normalizeOptional(readValue("Owner Email")),
-    accessKey: lines[rootKeyIndex + 1]?.trim() ?? "",
+    accessKey,
     accessEventsText: lines.slice(accessEventsIndex + 1).join("\n").trim(),
   };
 }
