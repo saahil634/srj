@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 import { NavBar } from "@/components/nav-bar";
 import { PlatformAccessGate } from "@/components/platform-access-gate";
 import { RevealFooter } from "@/components/reveal-footer";
@@ -30,6 +32,7 @@ export default function RootLayout({
             </div>
           </PlatformAccessGate>
         </SRJStoreProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
