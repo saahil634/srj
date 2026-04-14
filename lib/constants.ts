@@ -10,7 +10,7 @@ export const STORAGE_KEY = "srj-demo-packages";
 
 export const PLATFORM_ACCESS_STORAGE_KEY = "srj-platform-access";
 
-export const MAX_TOTAL_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_TOTAL_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export const UPLOAD_ACCEPT_LABEL = demoCopy.fileDropzone.allowedLabel;
 

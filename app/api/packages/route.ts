@@ -108,7 +108,7 @@ export async function POST(request: Request) {
 
     if (totalBytes > MAX_TOTAL_UPLOAD_BYTES) {
       return NextResponse.json(
-        { error: "Total upload size must stay within 10 MB." },
+        { error: "Total upload size must stay within 4 MB." },
         { status: 400 },
       );
     }

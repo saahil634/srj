@@ -377,10 +377,20 @@ export async function createStoredAccessKeyFile(input: {
 
 function parseStoredRootKeyRecordText(text: string): StoredRootKeyRecord {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
-  const rootKeyIndex = lines.findIndex(
-    (line) => line.trim() === "SRJ ROOT KEY" || line.trim() === "SECURE KEY" || line.trim() === "ROOT KEY",
-  );
   const accessEventsIndex = lines.findIndex((line) => line.trim() === "ACCESS EVENTS");
+  const rootKeyIndex = lines.findLastIndex((line, index) => {
+    if (index >= accessEventsIndex && accessEventsIndex !== -1) {
+      return false;
+    }
+
+    const normalized = line.trim();
+
+    return (
+      normalized === "SRJ ROOT KEY" ||
+      normalized === "SECURE KEY" ||
+      normalized === "ROOT KEY"
+    );
+  });
 
   if (rootKeyIndex === -1 || accessEventsIndex === -1 || rootKeyIndex + 1 >= lines.length) {
     throw new Error("Stored SRJ-root key record is malformed.");

@@ -132,7 +132,7 @@ export const demoCopy = {
     viewManifestButton: "View Manifest",
     closeManifestButton: "Close Manifest",
     errors: {
-      totalUploadLimit: "Total upload size must stay within 10 MB.",
+      totalUploadLimit: "Total upload size must stay within 4 MB.",
       invalidRelation: "Enter a non-empty package SRJ-access key.",
       unableToCreate: "Unable to create the SRJ package.",
     },
@@ -143,7 +143,7 @@ export const demoCopy = {
     dropTitle: "Click here to upload files and create SRJ package",
     dropDescription:
       "Upload multiple images, short audio/video clips, and text documents (.pdf, .txt).",
-    limitBadge: "10 MB total file size limit",
+    limitBadge: "4 MB total file size limit",
     selectButton: "Select files",
     allowedPrefix: "Files selected:",
     totalSelectedPrefix: "Total selected:",
@@ -154,7 +154,7 @@ export const demoCopy = {
     errors: {
       invalidType:
         "Only images, short audio clips, short video clips, PDFs, and TXT files are allowed.",
-      totalUploadLimit: "Total upload size must stay within 10 MB.",
+      totalUploadLimit: "Total upload size must stay within 4 MB.",
     },
   },
 
@@ -363,7 +363,7 @@ export const demoCopy = {
       intro:
         "This SRJ website is currently a work in-progress and available to invited users only. To request an invitation, please email the site administrator at turamp@washington.edu.",
       uploadBullets: [
-        "Users may upload images, short-form audio/video, PDF files, and TXT documents. The maximum storage limit is 10 MB per session.",
+        "Users may upload images, short-form audio/video, PDF files, and TXT documents. The maximum storage limit is 4 MB per session.",
         "Do not upload illegal, unauthorized, confidential, or copyright-protected material without permission.",
         "Do not impersonate or use an email address that does not belong to you.",
         "The site administrator has access to your uploaded data as per the terms and conditions you declare.",
@@ -381,7 +381,7 @@ export const demoCopy = {
     },
     terms: [
       "This SRJ website is currently a work in-progress and available to invited users only. To request an invitation, please email the site administrator at turamp@washington.edu.",
-      "Users may upload images, short-form audio/video, PDF files, and TXT documents. The maximum storage limit is 10 MB per session. Do not upload illegal, unauthorized, confidential, or copyright-protected material without permission. Do not impersonate or use an email address that does not belong to you. The site administrator has access to your uploaded data as per the terms and conditions you declare.",
+      "Users may upload images, short-form audio/video, PDF files, and TXT documents. The maximum storage limit is 4 MB per session. Do not upload illegal, unauthorized, confidential, or copyright-protected material without permission. Do not impersonate or use an email address that does not belong to you. The site administrator has access to your uploaded data as per the terms and conditions you declare.",
         "Access to this website requires that you are a human capable of keeping custody of your secret-key. Your SRJ-root key is created using a mix of numbers, text, and arithmetic expressions, and is required to create, access, or delete your data.",
         "This website is part of an Information Science research project titled \"Data Sovereignty in the Age of Gen-AI\" at the University of Washington, Seattle. The objectives of this project are to evaluate technical solutions that can protect digital assets from misuse, misrepresentation, and misappropriation. Your interactions with this website are recorded and contribute to a doctoral dissertation project. You can delete your data at any time using your SRJ-root key or by emailing the site administrator using the email linked to your root keys.",
       "This research experience is intended for Indigenous and non-Native scholars who are interested in publishing their data through websites, mobile applications, and AI tools while protecting them from unsupervised access, reuse, and sharing.",
