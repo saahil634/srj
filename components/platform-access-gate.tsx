@@ -682,10 +682,10 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate/90">
                 {demoCopy.platformAccess.header.eyebrow}
               </p>
-             <h1 className="mt-6 max-w-4xl text-[2.35rem] font-semibold tracking-tight leading-[1.08] md:text-[3rem]">
+             <h1 className="mt-6 max-w-4xl text-[1.95rem] font-semibold tracking-tight leading-[1.08] md:text-[2.4rem]">
   Secure Relational Jumps (SRJ)
 </h1>
-<h2 className="mt-3 max-w-4xl text-[1.65rem] font-medium tracking-tight leading-[1.12] text-slate-600 md:text-[2rem]">
+<h2 className="mt-3 max-w-4xl text-[1.3rem] font-medium tracking-tight leading-[1.2] text-slate-600 md:text-[1.6rem]">
   Framing data as relations
 </h2>
               <p className="mt-8 text-sm font-semibold tracking-[0.08em] text-slate/90">
@@ -694,8 +694,14 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
               <div className="mt-6 rounded-[1.9rem] border border-[#cdb79b] bg-[#e4d2bb] px-6 py-6 shadow-[inset_0_1px_0_rgba(255,250,241,0.45),0_18px_34px_rgba(90,62,36,0.12)]">
                 <div className="srj-scrollbar max-h-[52vh] overflow-y-auto pr-4">
-                  <div className="space-y-7 text-[1.05rem] leading-[1.85] text-ink/88 md:text-[1.15rem]">
+                  <div className="space-y-6 text-[0.95rem] leading-7 text-ink/88 md:text-[1rem]">
                   <p>{renderNoticeText(noticeCopy.intro, { contactEmail: noticeCopy.contactEmail })}</p>
+
+                    {noticeCopy.body.slice(0, 3).map((term) => (
+                      <p key={term}>
+                        {renderNoticeText(term, { italicPhrase: projectTitlePhrase })}
+                      </p>
+                    ))}
 
                     <ul className="list-outside list-disc space-y-3 pl-7 marker:text-ember">
                       {noticeCopy.uploadBullets.map((item) => (
@@ -705,7 +711,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                       ))}
                     </ul>
 
-                    {noticeCopy.body.map((term) => (
+                    {noticeCopy.body.slice(3).map((term) => (
                       <p key={term}>
                         {renderNoticeText(term, { italicPhrase: projectTitlePhrase })}
                       </p>
