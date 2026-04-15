@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { MAX_TOTAL_UPLOAD_BYTES } from "@/lib/constants";
@@ -6,10 +7,13 @@ import {
   createStoredPackage,
   deleteStoredPackage,
   findStoredRootKeyRecordByValue,
+  getAccessCookieName,
+  getLatestStoredAcceptanceRecord,
   isBlobConfigured,
   listStoredPackagesByOwnerRootKey,
   listStoredPackages,
 } from "@/lib/blob-storage";
+import { StoredDemoPackage } from "@/lib/types";
 import { isAllowedUploadFile } from "@/lib/upload-rules";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +30,7 @@ export async function GET(request: Request) {
   }
 
   try {
+    const cookieStore = await cookies();
     const { searchParams } = new URL(request.url);
     const mode = searchParams.get("mode")?.trim() ?? "";
     const secureKey =
@@ -47,7 +52,28 @@ export async function GET(request: Request) {
           })
         : await listStoredPackages();
 
-    return NextResponse.json({ packages });
+    const hydratedPackages = await Promise.all(
+      packages.map(async (pkg) => {
+        const accessCookie = cookieStore.get(getAccessCookieName(pkg.manifest.packageId));
+
+        if (!accessCookie) {
+          return pkg;
+        }
+
+        const acceptance = await getLatestStoredAcceptanceRecord(pkg.manifest.packageId);
+
+        if (!acceptance) {
+          return pkg;
+        }
+
+        return {
+          ...pkg,
+          acceptance,
+        } satisfies StoredDemoPackage;
+      }),
+    );
+
+    return NextResponse.json({ packages: hydratedPackages });
   } catch (error) {
     return NextResponse.json(
       {

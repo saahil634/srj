@@ -19,6 +19,10 @@ Create a `.env.local` file from `.env.example` and add:`BLOB_READ_WRITE_TOKEN`
 - Each acceptance event is written as an append-only JSON log under `srj-demo/acceptance-logs/...`.
 - When a recipient accepts terms, the app also sets a short-lived access cookie so preview routes can stream the private files for that package.
 
+## Specs
+
+- Phase 1.1 metadata-layer feature spec: [docs/phase-1.1-metadata-layers.md](docs/phase-1.1-metadata-layers.md)
+
 ## Local Development
 
 ```bash

@@ -4,12 +4,13 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { FilePreviewGrid } from "@/components/file-preview-grid";
+import { MetadataLayerList } from "@/components/metadata-layer-list";
 import { PackageMetadataCard } from "@/components/package-metadata-card";
 import { TermsAcceptanceModal } from "@/components/terms-acceptance-modal";
 import { demoCopy } from "@/lib/copy";
 import { usePlatformAccessSession } from "@/lib/platform-access-session";
 import { useSRJStore } from "@/lib/srj-store";
-import { SRJPackageManifest } from "@/lib/types";
+import { MetadataLayerLog, SRJPackageManifest } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils";
 
 export function OpenPackageExperience() {
@@ -26,6 +27,8 @@ export function OpenPackageExperience() {
   const [showModal, setShowModal] = useState(false);
   const [manifestText, setManifestText] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
+  const [metadataLayers, setMetadataLayers] = useState<MetadataLayerLog[]>([]);
+  const [metadataLayerError, setMetadataLayerError] = useState<string | null>(null);
 
   const activePackage = useMemo(
     () => packages.find((entry) => entry.manifest.packageId === activePackageId) ?? null,
@@ -39,6 +42,51 @@ export function OpenPackageExperience() {
       setActivePackageId(queryPackageId);
     }
   }, [packages, setActivePackageId]);
+
+  useEffect(() => {
+    if (!activePackage?.manifest.packageId) {
+      setMetadataLayers([]);
+      setMetadataLayerError(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    void fetch(`/api/packages/${activePackage.manifest.packageId}/metadata-layers`, {
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        const payload = (await response.json()) as {
+          metadataLayers?: MetadataLayerLog[];
+          error?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to load metadata layers.");
+        }
+
+        if (!isMounted) {
+          return;
+        }
+
+        setMetadataLayers(payload.metadataLayers ?? []);
+        setMetadataLayerError(null);
+      })
+      .catch((error) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setMetadataLayers([]);
+        setMetadataLayerError(
+          error instanceof Error ? error.message : "Unable to load metadata layers.",
+        );
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activePackage?.manifest.packageId]);
 
   function handleImport() {
     setImportError(null);
@@ -206,6 +254,20 @@ export function OpenPackageExperience() {
                 <p className="text-sm leading-6 text-slate">
                   {demoCopy.openExperience.actions.downloadZipEmbeddedHint}
                 </p>
+
+                {accessRecord ? (
+                  <>
+                    <a
+                      href={`/open/${activePackage.manifest.packageId}/layers/new`}
+                      className="block rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-ink transition hover:border-signal hover:text-signal"
+                    >
+                      {demoCopy.openExperience.actions.addMetadataLayer}
+                    </a>
+                    <p className="text-sm leading-6 text-slate">
+                      {demoCopy.openExperience.actions.addMetadataLayerHint}
+                    </p>
+                  </>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -217,6 +279,20 @@ export function OpenPackageExperience() {
         assets={isAccepted ? activePackage.assets : []}
         locked={!isAccepted}
       />
+
+      {isAccepted ? (
+        <>
+          {metadataLayerError ? (
+            <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
+              {metadataLayerError}
+            </div>
+          ) : null}
+          <MetadataLayerList
+            metadataLayers={metadataLayers}
+            files={activePackage.manifest.files}
+          />
+        </>
+      ) : null}
 
       {isAccepted && activePackage.acceptance ? (
         <section className="grid gap-4 md:grid-cols-2">

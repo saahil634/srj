@@ -4,6 +4,8 @@ import { GOVERNANCE_NOTICE, TERMS_PRESET, TERMS_VERSION } from "@/lib/constants"
 import {
   AcceptancePayload,
   DemoFileAsset,
+  MetadataLayerLog,
+  MetadataLayerType,
   PersistedAcceptanceLog,
   SRJPackageManifest,
   StoredDemoPackage,
@@ -16,6 +18,7 @@ const PACKAGE_FILE_PREFIX = "srj-demo/package-files";
 const ACCEPTANCE_LOG_PREFIX = "srj-demo/acceptance-logs";
 const DERIVATIVE_ERROR_LOG_PREFIX = "srj-demo/derivative-error-logs";
 const ACCESS_KEY_FILE_PREFIX = "srj-demo/access-keys";
+const METADATA_LAYER_LOG_PREFIX = "srj-demo/metadata-layer-logs";
 
 export const BLOB_CONFIG_ERROR =
   "Blob storage is not configured. Add BLOB_READ_WRITE_TOKEN before creating packages or recording access events.";
@@ -49,6 +52,10 @@ function buildAcceptanceLogPath(packageId: string, acceptedAt: string) {
 
 function buildDerivativeErrorLogPath(packageId: string, loggedAt: string, fileId: string) {
   return `${DERIVATIVE_ERROR_LOG_PREFIX}/${packageId}/${loggedAt}-${fileId}.json`;
+}
+
+function buildMetadataLayerLogPath(packageId: string, metadataLayerId: string) {
+  return `${METADATA_LAYER_LOG_PREFIX}/${packageId}/${metadataLayerId}.json`;
 }
 
 function buildAccessKeyFilePath(accessKeyId: string) {
@@ -284,6 +291,35 @@ export async function recordAcceptanceLog(input: AcceptancePayload) {
   return log;
 }
 
+export async function getLatestStoredAcceptanceRecord(packageId: string) {
+  ensureBlobConfigured();
+
+  const { blobs } = await list({
+    prefix: `${ACCEPTANCE_LOG_PREFIX}/${packageId}/`,
+  });
+
+  if (blobs.length === 0) {
+    return null;
+  }
+
+  const latestBlob = blobs
+    .slice()
+    .sort((left, right) => right.pathname.localeCompare(left.pathname))[0];
+
+  if (!latestBlob) {
+    return null;
+  }
+
+  const log = await readBlobJson<PersistedAcceptanceLog>(latestBlob.pathname);
+
+  return {
+    fullName: log.fullName,
+    email: log.email,
+    organization: log.organization,
+    acceptedAt: log.acceptedAt,
+  };
+}
+
 export async function recordDerivativeErrorLog(input: {
   packageId: string;
   fileId: string;
@@ -306,6 +342,113 @@ export async function recordDerivativeErrorLog(input: {
   );
 
   return log;
+}
+
+export async function createStoredMetadataLayer(input: {
+  packageId: string;
+  fileIds: string[];
+  createdBy: {
+    rootKeyFileId?: string | null;
+    rootKeyValue?: string | null;
+    name?: string | null;
+    email?: string | null;
+    organization?: string | null;
+    keyType: "secure-key" | "access-key";
+  };
+  sourceAccess?: {
+    accessorRootKey?: string | null;
+  };
+  layerType: MetadataLayerType;
+  layerTitle: string;
+  language?: string | null;
+  description: string;
+  payload: Record<string, string | string[] | null>;
+  geoSummary?: string | null;
+}) {
+  ensureBlobConfigured();
+
+  const pkg = await readStoredPackageRecord(input.packageId);
+  const fileIds = Array.from(new Set(input.fileIds.map((value) => value.trim()).filter(Boolean)));
+
+  if (fileIds.length === 0) {
+    throw new Error("At least one package file must be selected.");
+  }
+
+  const packageFileIds = new Set(pkg.manifest.files.map((file) => file.fileId));
+  const invalidFileIds = fileIds.filter((fileId) => !packageFileIds.has(fileId));
+
+  if (invalidFileIds.length > 0) {
+    throw new Error("One or more selected files do not belong to this SRJ package.");
+  }
+
+  const metadataLayerId = generateId("srjml");
+  const createdAt = new Date().toISOString();
+  const linkedRootKeyFileId = pkg.manifest.ownerRootKeyReference?.accessKeyFileId ?? null;
+
+  const metadataLayer: MetadataLayerLog = {
+    metadataLayerId,
+    packageId: input.packageId,
+    fileIds,
+    createdAt,
+    linkedRootKeyFileId,
+    createdBy: {
+      rootKeyFileId: input.createdBy.rootKeyFileId ?? null,
+      rootKeyValue: input.createdBy.rootKeyValue ?? null,
+      name: input.createdBy.name ?? null,
+      email: input.createdBy.email ?? null,
+      organization: input.createdBy.organization ?? null,
+      keyType: input.createdBy.keyType,
+    },
+    sourceAccess: {
+      accessorRootKey: input.sourceAccess?.accessorRootKey ?? null,
+    },
+    layerType: input.layerType,
+    layerTitle: input.layerTitle,
+    language: input.language ?? null,
+    description: input.description,
+    payload: input.payload,
+  };
+
+  await writeJsonBlob(
+    buildMetadataLayerLogPath(input.packageId, metadataLayerId),
+    metadataLayer,
+  );
+
+  if (linkedRootKeyFileId) {
+    await appendStoredMetadataLayerEvent({
+      accessKeyId: linkedRootKeyFileId,
+      packageId: input.packageId,
+      metadataLayerId,
+      createdAt,
+      layerType: input.layerType,
+      fileIds,
+      contributorName: input.createdBy.name ?? null,
+      contributorOrganization: input.createdBy.organization ?? null,
+      contributorEmail: input.createdBy.email ?? null,
+      accessorRootKey:
+        input.sourceAccess?.accessorRootKey ?? input.createdBy.rootKeyValue ?? null,
+      geoSummary: input.geoSummary ?? null,
+    });
+  }
+
+  return metadataLayer;
+}
+
+export async function listStoredMetadataLayers(packageId: string) {
+  ensureBlobConfigured();
+
+  const { blobs } = await list({
+    prefix: `${METADATA_LAYER_LOG_PREFIX}/${packageId}/`,
+  });
+
+  const layers = await Promise.all(
+    blobs.map(async (blob) => readBlobJson<MetadataLayerLog>(blob.pathname)),
+  );
+
+  return layers.sort(
+    (left, right) =>
+      new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
+  );
 }
 
 function buildAccessKeyFileText(input: {
@@ -617,6 +760,54 @@ export async function appendStoredAccessKeyAccessEvent(input: {
     `Full Name: ${input.fullName}`,
     `Organization: ${input.organization || "Unavailable"}`,
     `Email: ${input.email}`,
+    `Accessor Root Key: ${input.accessorRootKey || "Unavailable"}`,
+    `Geolocation: ${input.geoSummary || "Unavailable"}`,
+    "",
+  ].join("\n");
+
+  const nextText = buildAccessKeyFileText({
+    accessKeyId: currentRecord.accessKeyId,
+    accessKey: currentRecord.accessKey,
+    createdAt: currentRecord.createdAt,
+    geoSummary: currentRecord.geoSummary,
+    ownerName: currentRecord.ownerName,
+    ownerOrganization: currentRecord.ownerOrganization,
+    ownerEmail: currentRecord.ownerEmail,
+    accessEventsText: currentRecord.accessEventsText
+      ? `${currentRecord.accessEventsText}\n${eventText}`
+      : eventText,
+  });
+
+  await writeTextBlob(buildAccessKeyFilePath(input.accessKeyId), nextText);
+}
+
+export async function appendStoredMetadataLayerEvent(input: {
+  accessKeyId: string;
+  packageId: string;
+  metadataLayerId: string;
+  createdAt: string;
+  layerType: MetadataLayerType;
+  fileIds: string[];
+  contributorName?: string | null;
+  contributorOrganization?: string | null;
+  contributorEmail?: string | null;
+  accessorRootKey?: string | null;
+  geoSummary?: string | null;
+}) {
+  ensureBlobConfigured();
+
+  const currentRecord = await getStoredRootKeyRecord(input.accessKeyId);
+  const eventText = [
+    "---",
+    "Event Type: created_metadata_layer",
+    `Created At: ${input.createdAt}`,
+    `Package ID: ${input.packageId}`,
+    `Metadata Layer ID: ${input.metadataLayerId}`,
+    `Layer Type: ${input.layerType}`,
+    `Target File IDs: ${input.fileIds.join(", ")}`,
+    `Contributor Name: ${input.contributorName || "Unavailable"}`,
+    `Contributor Organization: ${input.contributorOrganization || "Unavailable"}`,
+    `Contributor Email: ${input.contributorEmail || "Unavailable"}`,
     `Accessor Root Key: ${input.accessorRootKey || "Unavailable"}`,
     `Geolocation: ${input.geoSummary || "Unavailable"}`,
     "",

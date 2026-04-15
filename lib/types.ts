@@ -1,4 +1,14 @@
 export type DemoFileKind = "image" | "audio" | "pdf" | "video" | "text" | "other";
+export type MetadataLayerType =
+  | "translation"
+  | "annotation"
+  | "summary"
+  | "context-note"
+  | "rights-note"
+  | "cultural-sensitivity-note"
+  | "educational-note"
+  | "transcription"
+  | "other";
 
 export interface SRJKeyReference {
   keyId: string;
@@ -64,4 +74,28 @@ export interface AcceptancePayload {
 
 export interface PersistedAcceptanceLog extends AcceptancePayload {
   acceptedAt: string;
+}
+
+export interface MetadataLayerLog {
+  metadataLayerId: string;
+  packageId: string;
+  fileIds: string[];
+  createdAt: string;
+  linkedRootKeyFileId: string | null;
+  createdBy: {
+    rootKeyFileId: string | null;
+    rootKeyValue?: string | null;
+    name?: string | null;
+    email?: string | null;
+    organization?: string | null;
+    keyType: "secure-key" | "access-key";
+  };
+  sourceAccess: {
+    accessorRootKey?: string | null;
+  };
+  layerType: MetadataLayerType;
+  layerTitle: string;
+  language?: string | null;
+  description: string;
+  payload: Record<string, string | string[] | null>;
 }
