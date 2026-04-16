@@ -445,7 +445,7 @@ export const demoCopy = {
       description:
         "Review the terms and conditions above to access this session.",
       termsEyebrow: "Terms and conditions",
-      lastUpdatedLabel: "Last Updated: April 11, 2026",
+      lastUpdatedLabel: "Last Updated: April 15, 2026",
       acceptLabel:
         "I am 21 years old and above. I accept the terms and conditions for using this website.",
       logoutButton: "Logout session",
