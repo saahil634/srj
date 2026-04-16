@@ -76,6 +76,8 @@ function renderNoticeText(
         <a
           key={`email-${key++}`}
           href={`mailto:${email}`}
+          target="_blank"
+          rel="noreferrer"
           className="font-semibold text-ink underline decoration-ember/70 underline-offset-4 transition hover:text-ember"
         >
           {email}

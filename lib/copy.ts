@@ -445,7 +445,7 @@ export const demoCopy = {
       description:
         "Review the terms and conditions above to access this session.",
       termsEyebrow: "Terms and conditions",
-      lastUpdatedLabel: "Last Updated: April 15, 2026",
+      lastUpdatedLabel: "Last Updated: April 16, 2026",
       acceptLabel:
         "I am 21 years old and above. I accept the terms and conditions for using this website.",
       logoutButton: "Logout session",
@@ -474,6 +474,8 @@ export const demoCopy = {
         "You may use fictional names or email addresses, such as abc@example.org, to protect your privacy.",
       ],
       body: [
+        "This SRJ website is currently a work in progress and is available to invited users only for pilot testing. Institutional Review Board (IRB) application and approval for this study are currently in progress, and formal participant enrollment has not yet begun. If you received access from the site administrator and agree to the terms and conditions below, you may use this site for academic review, testing, and evaluation only. All data collected during this pilot period will be deleted by the site administrator and will not be part of the research study.",
+        "Formal participant enrollment is expected to begin on June 15, 2026. To request a formal invitation or share feedback, please email the site administrator, Turam Purty, at turamp@washington.edu.",
         "This website is part of a research project titled \"Data Sovereignty in the Age of Gen-AI\" at the University of Washington, Seattle. The goal is to evaluate technical solutions that can protect digital assets, such as e-publications and online datasets, from unsupervised access, misuse, misrepresentation, and misappropriation.",
         "This research experience is intended for Indigenous and non-Native scholars who are interested in publishing their data through websites, mobile applications, and AI tools while protecting it from unsupervised access, reuse, and sharing.",
         "Your interactions with this website are recorded and contribute to a doctoral dissertation project. Access requires creating an SRJ-root key that is space-sensitive and may include special characters. This key is required to create, access, and delete your data.",
@@ -487,6 +489,8 @@ export const demoCopy = {
     },
     terms: [
       "This SRJ website is currently a work in progress and is available to invited users only. To request an invitation, please email the site administrator at turamp@washington.edu.",
+      "This SRJ website is currently a work in progress and is available to invited users only for pilot testing. Institutional Review Board (IRB) application and approval for this study are currently in progress, and formal participant enrollment has not yet begun. If you received access from the site administrator and agree to the terms and conditions below, you may use this site for academic review, testing, and evaluation only. All data collected during this pilot period will be deleted by the site administrator and will not be part of the research study.",
+      "Formal participant enrollment is expected to begin on June 15, 2026. To request a formal invitation or share feedback, please email the site administrator, Turam Purty, at turamp@washington.edu.",
       "This website is part of a research project titled \"Data Sovereignty in the Age of Gen-AI\" at the University of Washington, Seattle. The goal is to evaluate technical solutions that can protect digital assets, such as e-publications and online datasets, from unsupervised access, misuse, misrepresentation, and misappropriation.",
       "This research experience is intended for Indigenous and non-Native scholars who are interested in publishing their data through websites, mobile applications, and AI tools while protecting it from unsupervised access, reuse, and sharing.",
       "Your interactions with this website are recorded and contribute to a doctoral dissertation project. Access requires creating an SRJ-root key that is space-sensitive and may include special characters. This key is required to create, access, and delete your data.",
