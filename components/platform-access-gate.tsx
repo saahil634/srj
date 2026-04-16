@@ -697,7 +697,9 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
               <div className="mt-6 rounded-[1.9rem] border border-[#cdb79b] bg-[#e4d2bb] px-6 py-6 shadow-[inset_0_1px_0_rgba(255,250,241,0.45),0_18px_34px_rgba(90,62,36,0.12)]">
                 <div className="srj-scrollbar max-h-[52vh] overflow-y-auto pr-4">
                   <div className="space-y-6 text-[0.95rem] leading-7 text-ink/88 md:text-[1rem]">
-                  <p>{renderNoticeText(noticeCopy.intro, { contactEmail: noticeCopy.contactEmail })}</p>
+                  {noticeCopy.intro ? (
+                    <p>{renderNoticeText(noticeCopy.intro, { contactEmail: noticeCopy.contactEmail })}</p>
+                  ) : null}
 
                     {noticeCopy.body.slice(0, 3).map((term) => (
                       <p key={term}>

@@ -465,7 +465,7 @@ export const demoCopy = {
     },
     notice: {
       intro:
-        "This SRJ website is currently a work in progress and is available to invited users only. To request an invitation, please email the site administrator at turamp@washington.edu.",
+        "This SRJ website is currently a work in progress. Institutional Review Board (IRB) application and approval for this study are currently in progress, and formal participant enrollment has not yet begun. If you received access from the site administrator and agree to the terms and conditions below, you may use this site for academic review, testing, and evaluation only. All data collected during this pilot period will be deleted by the site administrator and will not be part of the research study.",
       uploadBullets: [
         "You may upload images, short-form audio or video, PDF files, and TXT documents to create an \"SRJ package.\" The maximum storage limit is 4 MB per session.",
         "You may create your own \"SRJ-access keys\" and add new metadata layers to package files that support them.",
@@ -488,8 +488,7 @@ export const demoCopy = {
       contactEmail: "turamp@washington.edu",
     },
     terms: [
-      "This SRJ website is currently a work in progress and is available to invited users only. To request an invitation, please email the site administrator at turamp@washington.edu.",
-      "Institutional Review Board (IRB) application and approval for this study are currently in progress, and formal participant enrollment has not yet begun. If you received access from the site administrator and agree to the terms and conditions below, you may use this site for academic review, testing, and evaluation only. All data collected during this pilot period will be deleted by the site administrator and will not be part of the research study.",
+      "This SRJ website is currently a work in progress. Institutional Review Board (IRB) application and approval for this study are currently in progress, and formal participant enrollment has not yet begun. If you received access from the site administrator and agree to the terms and conditions below, you may use this site for academic review, testing, and evaluation only. All data collected during this pilot period will be deleted by the site administrator and will not be part of the research study.",
       "Formal participant enrollment is expected to begin on June 15, 2026. To request a formal invitation or share feedback, please email the site administrator, Turam Purty, at turamp@washington.edu.",
       "This website is part of a research project titled \"Data Sovereignty in the Age of Gen-AI\" at the University of Washington, Seattle. The goal is to evaluate technical solutions that can protect digital assets, such as e-publications and online datasets, from unsupervised access, misuse, misrepresentation, and misappropriation.",
       "This research experience is intended for Indigenous and non-Native scholars who are interested in publishing their data through websites, mobile applications, and AI tools while protecting it from unsupervised access, reuse, and sharing.",
