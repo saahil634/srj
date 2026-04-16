@@ -701,7 +701,10 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
                     {noticeCopy.body.slice(0, 3).map((term) => (
                       <p key={term}>
-                        {renderNoticeText(term, { italicPhrase: projectTitlePhrase })}
+                        {renderNoticeText(term, {
+                          contactEmail: noticeCopy.contactEmail,
+                          italicPhrase: projectTitlePhrase,
+                        })}
                       </p>
                     ))}
 
@@ -715,7 +718,10 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
                     {noticeCopy.body.slice(3).map((term) => (
                       <p key={term}>
-                        {renderNoticeText(term, { italicPhrase: projectTitlePhrase })}
+                        {renderNoticeText(term, {
+                          contactEmail: noticeCopy.contactEmail,
+                          italicPhrase: projectTitlePhrase,
+                        })}
                       </p>
                     ))}
 
