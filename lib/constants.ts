@@ -9,6 +9,7 @@ export const GOVERNANCE_NOTICE = demoCopy.openExperience.governanceNotice.body;
 export const STORAGE_KEY = "srj-demo-packages";
 
 export const PLATFORM_ACCESS_STORAGE_KEY = "srj-platform-access";
+export const ACCESS_KEY_ACCEPTANCE_STORAGE_KEY = "srj-access-key-accepted-packages";
 
 export const MAX_TOTAL_UPLOAD_BYTES = 4 * 1024 * 1024;
 

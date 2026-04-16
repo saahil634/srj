@@ -3,7 +3,10 @@
 import { FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
 
 import { demoCopy } from "@/lib/copy";
-import { PLATFORM_ACCESS_STORAGE_KEY } from "@/lib/constants";
+import {
+  ACCESS_KEY_ACCEPTANCE_STORAGE_KEY,
+  PLATFORM_ACCESS_STORAGE_KEY,
+} from "@/lib/constants";
 import {
   createPlatformAccessChallengeSet,
   evaluateArithmeticExpression,
@@ -126,6 +129,18 @@ function persistAccessRecord(record: PlatformAccessRecord) {
   window.sessionStorage.setItem(PLATFORM_ACCESS_STORAGE_KEY, JSON.stringify(record));
 }
 
+function clearAcceptedPackageForAccessKeySession(packageId: string) {
+  try {
+    const raw = window.sessionStorage.getItem(ACCESS_KEY_ACCEPTANCE_STORAGE_KEY);
+    const parsed = raw ? (JSON.parse(raw) as string[]) : [];
+    const next = Array.isArray(parsed) ? parsed.filter((id) => id !== packageId) : [];
+
+    window.sessionStorage.setItem(ACCESS_KEY_ACCEPTANCE_STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    window.sessionStorage.removeItem(ACCESS_KEY_ACCEPTANCE_STORAGE_KEY);
+  }
+}
+
 export function PlatformAccessGate({ children }: { children: ReactNode }) {
   const noticeCopy = demoCopy.platformAccess.notice;
   const projectTitlePhrase = '"Data Sovereignty in the Age of Gen-AI"';
@@ -166,6 +181,7 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
 
   function resetAccessFlow() {
     window.sessionStorage.removeItem(PLATFORM_ACCESS_STORAGE_KEY);
+    window.sessionStorage.removeItem(ACCESS_KEY_ACCEPTANCE_STORAGE_KEY);
     setAccessRecord(null);
     setPendingRecord(null);
     setInvitationRecord(null);
@@ -1210,6 +1226,11 @@ export function PlatformAccessGate({ children }: { children: ReactNode }) {
                               <button
                                 type="button"
                                 onClick={() => {
+                                  if (invitationRecord.keyType === "access-key") {
+                                    clearAcceptedPackageForAccessKeySession(
+                                      pkg.manifest.packageId,
+                                    );
+                                  }
                                   persistAccessRecord(invitationRecord);
                                   setAccessRecord(invitationRecord);
                                   setInvitationRecord(null);

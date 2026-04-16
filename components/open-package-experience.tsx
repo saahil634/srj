@@ -8,6 +8,7 @@ import { MetadataLayerList } from "@/components/metadata-layer-list";
 import { PackageMetadataCard } from "@/components/package-metadata-card";
 import { TermsAcceptanceModal } from "@/components/terms-acceptance-modal";
 import { demoCopy } from "@/lib/copy";
+import { ACCESS_KEY_ACCEPTANCE_STORAGE_KEY } from "@/lib/constants";
 import { usePlatformAccessSession } from "@/lib/platform-access-session";
 import { useSRJStore } from "@/lib/srj-store";
 import { MetadataLayerLog, SRJPackageManifest } from "@/lib/types";
@@ -29,6 +30,7 @@ export function OpenPackageExperience() {
   const [importError, setImportError] = useState<string | null>(null);
   const [metadataLayers, setMetadataLayers] = useState<MetadataLayerLog[]>([]);
   const [metadataLayerError, setMetadataLayerError] = useState<string | null>(null);
+  const [sessionAcceptedPackageIds, setSessionAcceptedPackageIds] = useState<string[]>([]);
 
   const activePackage = useMemo(
     () => packages.find((entry) => entry.manifest.packageId === activePackageId) ?? null,
@@ -42,6 +44,24 @@ export function OpenPackageExperience() {
       setActivePackageId(queryPackageId);
     }
   }, [packages, setActivePackageId]);
+
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem(ACCESS_KEY_ACCEPTANCE_STORAGE_KEY);
+
+      if (!raw) {
+        setSessionAcceptedPackageIds([]);
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as string[];
+
+      setSessionAcceptedPackageIds(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      window.sessionStorage.removeItem(ACCESS_KEY_ACCEPTANCE_STORAGE_KEY);
+      setSessionAcceptedPackageIds([]);
+    }
+  }, []);
 
   useEffect(() => {
     if (!activePackage?.manifest.packageId) {
@@ -169,13 +189,27 @@ export function OpenPackageExperience() {
     );
   }
 
-  const isAccepted = Boolean(activePackage.acceptance);
+  const isAccepted = Boolean(
+    activePackage.acceptance &&
+      (accessRecord?.keyType !== "access-key" ||
+        sessionAcceptedPackageIds.includes(activePackage.manifest.packageId)),
+  );
   const isOwnerSessionAccess = Boolean(
     accessRecord?.keyType !== "access-key" &&
       accessRecord?.accessKeyId &&
       activePackage.manifest.ownerRootKeyReference?.accessKeyFileId &&
       accessRecord.accessKeyId === activePackage.manifest.ownerRootKeyReference.accessKeyFileId,
   );
+
+  function markPackageAcceptedInSession(packageId: string) {
+    setSessionAcceptedPackageIds((current) => {
+      const next = current.includes(packageId) ? current : [...current, packageId];
+
+      window.sessionStorage.setItem(ACCESS_KEY_ACCEPTANCE_STORAGE_KEY, JSON.stringify(next));
+
+      return next;
+    });
+  }
 
   return (
     <div className="space-y-8">
@@ -350,9 +384,10 @@ export function OpenPackageExperience() {
         }}
         open={showModal}
         onClose={() => setShowModal(false)}
-        onAccepted={(acceptance) =>
-          saveAcceptance(activePackage.manifest.packageId, acceptance)
-        }
+        onAccepted={(acceptance) => {
+          saveAcceptance(activePackage.manifest.packageId, acceptance);
+          markPackageAcceptedInSession(activePackage.manifest.packageId);
+        }}
       />
     </div>
   );
